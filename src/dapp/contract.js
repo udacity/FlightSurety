@@ -53,4 +53,27 @@ export default class Contract {
                 callback(error, payload);
             });
     }
+
+    buyInsurance(flight, insuranceAmount, callback) {
+        let self = this;
+        self.flightSuretyApp.methods.buyInsurance(flight.airline, flight.flight, flight.timestamp, self.passengers[0]).send({
+            from: self.passengers[0],
+            value: self.web3.utils.toWei(insuranceAmount, "ether"),
+            gas: 4712388,
+            gasPrice: 100000000000
+        }, (error, result) => {
+            flight.insuranceAmount = insuranceAmount;
+            flight.passenger = self.passengers[0];
+            callback(error, flight);
+        });
+    }
+
+    withdrawAmount(walletAddress, callback) {
+        let self = this;
+        self.flightSuretyApp.methods.withdrawAmount().send({
+            from: walletAddress,
+        }, (error, result) => {
+            callback(error, result);
+        });
+    }
 }

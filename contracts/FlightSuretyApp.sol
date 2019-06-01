@@ -1,10 +1,12 @@
-pragma solidity ^0.4.25;
+pragma solidity ^0.4.24;
 
 // It's important to avoid vulnerabilities due to numeric overflow bugs
 // OpenZeppelin's SafeMath library, when used correctly, protects agains such bugs
 // More info: https://www.nccgroup.trust/us/about-us/newsroom-and-events/blog/2018/november/smart-contract-insecurity-bad-arithmetic/
 
 import "../node_modules/openzeppelin-solidity/contracts/math/SafeMath.sol";
+
+import "./FlightSuretyData.sol";
 
 /************************************************** */
 /* FlightSurety Smart Contract                      */
@@ -15,6 +17,7 @@ contract FlightSuretyApp {
     /********************************************************************************************/
     /*                                       DATA VARIABLES                                     */
     /********************************************************************************************/
+    bool private operational = true;                                    // Blocks all state changes throughout the contract if false
 
     // Flight status codees
     uint8 private constant STATUS_CODE_UNKNOWN = 0;
@@ -33,8 +36,11 @@ contract FlightSuretyApp {
         address airline;
     }
     mapping(bytes32 => Flight) private flights;
+    //Seperate DATA & APP Contranct
+    FlightSuretyData flightSuretyData;
 
- 
+    uint constant requiredVotesConstant = 4;
+
     /********************************************************************************************/
     /*                                       FUNCTION MODIFIERS                                 */
     /********************************************************************************************/
@@ -49,8 +55,7 @@ contract FlightSuretyApp {
     */
     modifier requireIsOperational() 
     {
-         // Modify to call data contract's status
-        require(true, "Contract is currently not operational");  
+        require(operational, "App Contract is currently not operational");  
         _;  // All modifiers require an "_" which indicates where the function body will be added
     }
 
@@ -73,10 +78,13 @@ contract FlightSuretyApp {
     */
     constructor
                                 (
+                                    address dataContract
                                 ) 
                                 public 
     {
         contractOwner = msg.sender;
+        flightSuretyData = FlightSuretyData(dataContract);
+
     }
 
     /********************************************************************************************/
@@ -85,10 +93,10 @@ contract FlightSuretyApp {
 
     function isOperational() 
                             public 
-                            pure 
+                            view 
                             returns(bool) 
     {
-        return true;  // Modify to call data contract's status
+        return operational;
     }
 
     /********************************************************************************************/
@@ -101,28 +109,89 @@ contract FlightSuretyApp {
     *
     */   
     function registerAirline
-                            (   
+                            (  
+                            address _newAirline
                             )
                             external
-                            pure
+                            requireIsOperational
                             returns(bool success, uint256 votes)
-    {
-        return (success, 0);
+    {   
+        require(flightSuretyData.isAirlineActivated(msg.sender), "Only Active airlines may register others");
+        require(!flightSuretyData.isAirlineRegistered(_newAirline),"This airline is already registered");
+        require(!flightSuretyData.isAirlineVoted(_newAirline, msg.sender), "You have already voted for this airline");
+        flightSuretyData.addAirlineVotes(_newAirline, msg.sender);
+        address[] memory registeredAirlines = flightSuretyData.getRegisteredAirlines();
+        address[] memory votedAirlines = flightSuretyData.getAirlineVotes(_newAirline);
+        if(registeredAirlines.length <= requiredVotesConstant){
+            flightSuretyData.registerAirline(_newAirline);
+            success = true;
+        }else{
+            if(votedAirlines.length>=registeredAirlines.length/2){ //More than 50% of registered airlines have to approve
+                flightSuretyData.registerAirline(_newAirline);
+                success = true;
+            }
+            else{
+                success = false;
+            } 
+        }
+
+        return (success, votedAirlines.length);
     }
 
-
+    /**
+    * @dev Check if the airline is activated
+    *
+    */
+    function isAirlineRegistered(address newAirline) external view returns(bool) {
+        require(isOperational(), "Service is not available");
+        return flightSuretyData.isAirlineRegistered(newAirline);
+    }
    /**
     * @dev Register a future flight for insuring.
+    *HARDCODED INTO DAPP FOR NOW
     *
     */  
-    function registerFlight
-                                (
-                                )
-                                external
-                                pure
-    {
+    // function registerFlight
+    //                             (
+    //                             )
+    //                             external
+    //                             pure
+    // {
 
+    // }
+
+
+    /**
+    * @dev Activate an airline
+    *
+    */
+    function activateAirline(address _airlineAddress) external payable {
+        require(isOperational(), "Service is not available");
+        require(flightSuretyData.isAirlineRegistered(_airlineAddress), "This airline is not registered");
+        require(!flightSuretyData.isAirlineActivated(_airlineAddress), "This airline is already activated");
+        require(msg.value == 10 ether, "Please submit 10 ether to activate your airline");
+        flightSuretyData.activateAirline.value(msg.value)(_airlineAddress);
     }
+    
+    /**
+    * @dev Check if the airline is activated
+    *
+    */
+    function isAirlineActivated(address _airlineAddress) external view returns(bool) {
+        require(isOperational(), "Service is not available");
+        return flightSuretyData.isAirlineActivated(_airlineAddress);
+    }
+
+    /**
+     * @dev Buy insurance for a flight
+     *
+     */
+    function buyInsurance(address _airline, string _flight, uint256 _timestamp, address _passenger) external payable {
+        require(isOperational(), "Service is not available");
+        require(msg.value <= 1 ether, "Amount should be less than or equal to 1 ether");
+        flightSuretyData.buy.value(msg.value)(_airline, _flight, _timestamp, _passenger, msg.value);
+    }
+
     
    /**
     * @dev Called after oracle has updated flight status
@@ -139,27 +208,46 @@ contract FlightSuretyApp {
                                 pure
     {
     }
+    /**
+     * @dev Claim the insurance amount for a flight
+     *
+     */
+    function claimInsuranceAmount(address airline, string flight, uint256 timestamp, address passenger) external {
+        require(isOperational(), "Service is not available");
+        flightSuretyData.creditInsurees(airline, flight, timestamp, airline, passenger);
+    }
 
+    /**
+     * @dev Withdraw amount to their wallet
+     *
+     */
+    function withdrawAmount() external {
+        require(isOperational(), "Service is not available");
+        flightSuretyData.pay(msg.sender);
+    }
 
     // Generate a request for oracles to fetch flight information
     function fetchFlightStatus
                         (
-                            address airline,
-                            string flight,
-                            uint256 timestamp                            
+                            address _airline,
+                            string _flight,
+                            uint256 _timestamp                            
                         )
                         external
     {
+        require(flightSuretyData.isAirlineRegistered(_airline),"This airline is not registered");
+        require(flightSuretyData.isAirlineActivated(_airline), "Only Active airlines may register others");
+
         uint8 index = getRandomIndex(msg.sender);
 
         // Generate a unique key for storing the request
-        bytes32 key = keccak256(abi.encodePacked(index, airline, flight, timestamp));
+        bytes32 key = keccak256(abi.encodePacked(index, _airline, _flight, _timestamp));
         oracleResponses[key] = ResponseInfo({
                                                 requester: msg.sender,
                                                 isOpen: true
                                             });
 
-        emit OracleRequest(index, airline, flight, timestamp);
+        emit OracleRequest(index, _airline, _flight, _timestamp);
     } 
 
 
