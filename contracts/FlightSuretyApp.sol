@@ -16,6 +16,8 @@ contract FlightSuretyApp {
     /*                                       DATA VARIABLES                                     */
     /********************************************************************************************/
 
+    FlightSuretyData flightSuretyData;
+
     // Flight status codees
     uint8 private constant STATUS_CODE_UNKNOWN = 0;
     uint8 private constant STATUS_CODE_ON_TIME = 10;
@@ -73,10 +75,12 @@ contract FlightSuretyApp {
     */
     constructor
                                 (
+                                    address dataContract
                                 )
                                 public
     {
         contractOwner = msg.sender;
+        flightSuretyData = FlightSuretyData(dataContract);
     }
 
     /********************************************************************************************/
@@ -102,12 +106,13 @@ contract FlightSuretyApp {
     */
     function registerAirline
                             (
+                                address account
                             )
                             external
-                            pure
-                            returns(bool success, uint256 votes)
+                            returns(bool)
     {
-        return (success, 0);
+        flightSuretyData.registerAirline(account);
+        return true;
     }
 
 
@@ -340,4 +345,9 @@ contract FlightSuretyApp {
 
 // endregion
 
-}   
+}
+
+contract FlightSuretyData {
+    function registerAirline(address account)
+    external;
+}
