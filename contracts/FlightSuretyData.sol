@@ -18,7 +18,13 @@ contract FlightSuretyData {
         bool isParticipationValid;
     }
 
+    struct Passenger {
+        address account;
+        uint256 pricePaid;
+    }
+
     mapping(address => Airline) airlines;
+    mapping(address => Passenger) passengers;
 
     address[] airlineList = new address[](0);
     address[] multiCalls = new address[](0);
@@ -180,11 +186,12 @@ contract FlightSuretyData {
     */
     function buy
                             (
+                                uint256 amount
                             )
                             external
                             payable
     {
-
+        require(passengers[msg.sender].pricePaid < 1000000000000000000, "You cannot exceed 1 Eth");
     }
 
     /**
