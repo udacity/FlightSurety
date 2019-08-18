@@ -36,6 +36,11 @@ contract FlightSuretyApp {
     }
     mapping(bytes32 => Flight) private flights;
 
+    
+    address[] airlineList = new address[](0);
+    address[] multiCalls = new address[](0);
+    address[] operationalMultiCalls = new address[](0);
+
  
     /********************************************************************************************/
     /*                                       FUNCTION MODIFIERS                                 */
@@ -89,15 +94,46 @@ contract FlightSuretyApp {
 
     function isOperational()
                             public
-                            pure
                             returns(bool)
     {
-        return true;  // Modify to call data contract's status
+        return flightSuretyData.isOperational();  // Modify to call data contract's status
     }
+
+    
 
     /********************************************************************************************/
     /*                                     SMART CONTRACT FUNCTIONS                             */
     /********************************************************************************************/
+
+     /**
+    * @dev Sets contract operations on/off
+    *
+    * When operational mode is disabled, all write transactions except for this one will fail
+    */
+    function setOperatingStatus
+                            (
+                                bool mode
+                            )
+                            external
+    {
+        require(mode != operational, "New mode must be different from existing mode");
+        require(userProfiles[msg.sender].isAdmin, "Caller is not an admin");
+
+        bool isDuplicate = false;
+        for(uint c = 0; c < operationalMultiCalls.length; c++) {
+            if (operationalMultiCalls[c] == msg.sender) {
+                isDuplicate = true;
+                break;
+            }
+        }
+        require(!isDuplicate, "Caller has already called this function.");
+
+        operationalMultiCalls.push(msg.sender);
+        if (operationalMultiCalls.length >= M) {
+            flightSuretyData.setOperatingStatus(mode);
+            operationalMultiCalls = new address[](0);
+        }
+    }
 
   
    /**
@@ -111,10 +147,43 @@ contract FlightSuretyApp {
                             external
                             returns(bool)
     {
-        flightSuretyData.registerAirline(account);
-        return true;
+        if (airlineList.length <= 4) {
+            // must be contract owner
+            require(msg.sender == contractOwner, "Caller is not contract owner");
+            // only existing airlines may register a new arline
+            
+            airlineList.push(account);
+            flightSuretyData.registerAirline(account);
+            return true;
+        } else {
+            // check if duplicate and if airline is registered
+            bool isDuplicate = false;
+            for (uint c = 0; c < multiCalls.length; c++) {
+                if(multiCalls[c] == msg.sender) {
+                    isDuplicate = true;
+                    break;
+                }
+            }
+            require(!isDuplicate, "Caller has already called this function");
+            // check if half of registered airlines approves
+            multiCalls.push(msg.sender);
+            if(multiCalls.length >= uint256(airlineList.length).div(2)) {
+                multiCalls = new address[](0);
+                airlineList.push(account);
+                flightSuretyData.registerAirline(account);
+            }
+            return true;
+        }
     }
 
+    function fund() public payable {
+        require(msg.sender == tx.origin, "Contracts not allowed");
+        uint256 fee = 10 ether;
+        require(msg.value >= fee, "Insufficient funds. Must have 10 Eth");
+
+        msg.value.sub(fee);
+        flightSuretyData.fund();
+    }
 
    /**
     * @dev Register a future flight for insuring.
@@ -144,6 +213,7 @@ contract FlightSuretyApp {
                                 pure
     {
     }
+
 
 
     // Generate a request for oracles to fetch flight information
@@ -242,7 +312,9 @@ contract FlightSuretyApp {
         return oracles[msg.sender].indexes;
     }
 
+    function creditInsurees() external {
 
+    }
 
 
     // Called by oracle when a response is available to an outstanding request
@@ -348,6 +420,8 @@ contract FlightSuretyApp {
 }
 
 contract FlightSuretyData {
-    function registerAirline(address account)
-    external;
+    function registerAirline(address account) external returns(bool);
+    function isOperational() external returns(bool);
+    function fund() public payable;
+    function setOperatingStatus(bool mode) external;
 }
