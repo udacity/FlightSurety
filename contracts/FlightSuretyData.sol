@@ -11,17 +11,14 @@ contract FlightSuretyData {
 
     address private contractOwner;                                      // Account used to deploy contract
     bool private operational = true;                                    // Blocks all state changes throughout the contract if false
+    bool private testingMode = false;
     mapping(address => bool) private authorizedContracts;
 
     FlightSuretyData private flightSuretyData;
 
-    enum AirlineState {
-        Registered,
-        Participating
-    }
-
-    mapping (address => AirlineState) private airlines;
-    mapping (address => uint) private fund; // airline funding so far, helps to convert Registered airline to Participating airline
+    mapping (address => bool) private registedAirlines;      // registedAirlines
+    mapping (address => bool) private participatingAirlines; // fully funded airlines
+    mapping (address => uint256) private fundings; // airlines fundings so far, helps to convert Registered airlines to Participating airlines
 
 
 
@@ -30,6 +27,8 @@ contract FlightSuretyData {
     /********************************************************************************************/
     // Airline Registed
     event Registered(address airlineAddress);
+    // Airline Participating
+    event Participating(address airlineAddress);
 
 
     /**
@@ -38,12 +37,13 @@ contract FlightSuretyData {
     */
     constructor
                                 (
+                                    address _firstAirline
                                 )
                                 public
     {
         contractOwner = msg.sender;
-        airlines[contractOwner] = AirlineState.Registered;
-        emit Registered(contractOwner);
+        registedAirlines[_firstAirline] = true;
+        emit Registered(_firstAirline);
     }
 
     /********************************************************************************************/
@@ -85,9 +85,18 @@ contract FlightSuretyData {
     /**
      * Modifier that requires airline is registred
      */
-    modifier onlyRegistredAirline(address _airline)
+    modifier onlyRegistredAirline()
     {
-        require(airlines[_airline] == AirlineState.Registered, "Airline is not registred");
+        require(registedAirlines[msg.sender] == true, "Airline is not registred");
+        _;
+    }
+
+       /**
+     * Modifier that requires airline is participating
+     */
+    modifier onlyParticipatingAirline()
+    {
+        require(participatingAirlines[msg.sender] == true, "Airline is not registred");
         _;
     }
 
@@ -150,6 +159,19 @@ contract FlightSuretyData {
         return authorizedContracts[contractAddress];
     }
 
+    /**
+     * @dev function for testing requireIsOperational
+     */
+    function setTestingMode(bool mode) external requireContractOwner requireIsOperational
+    {
+        testingMode = mode;
+    }
+
+    function getTestingMode() public view returns (bool)
+    {
+        return testingMode;
+    }
+
     /********************************************************************************************/
     /*                                     SMART CONTRACT FUNCTIONS                             */
     /********************************************************************************************/
@@ -165,9 +187,15 @@ contract FlightSuretyData {
                             )
                             external
                             requireIsOperational
+                            onlyParticipatingAirline
     {
-        airlines[contractOwner] = AirlineState.Registered;
-        emit Registered(contractOwner);
+        registedAirlines[_airline] = true;
+        emit Registered(_airline);
+    }
+
+    function isRegisteredAirline(address _airline) public view returns (bool)
+    {
+        return registedAirlines[_airline];
     }
 
 
@@ -211,7 +239,8 @@ contract FlightSuretyData {
    /**
     * @dev Initial funding for the insurance. Unless there are too many delayed flights
     *      resulting in insurance payouts, the contract should be self-sustaining
-    *
+    *      Airlines can add fund to reach 10 ether in multiple transfers.
+    *      They can keep adding fund afterward, but Participating event will emit only once.
     */
     function fund
                             (
@@ -219,8 +248,15 @@ contract FlightSuretyData {
                             public
                             payable
                             requireIsOperational
+                            onlyRegistredAirline
     {
-
+        uint256 currentFundedAmount = fundings[msg.sender];
+        currentFundedAmount = currentFundedAmount.add(msg.value);
+        fundings[msg.sender] = currentFundedAmount;
+        if (currentFundedAmount >= 10 ether && participatingAirlines[msg.sender] == false) {
+            participatingAirlines[msg.sender] = true;
+            emit Participating(msg.sender);
+        }
     }
 
     function getFlightKey
