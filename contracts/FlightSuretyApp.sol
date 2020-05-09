@@ -74,6 +74,15 @@ contract FlightSuretyApp {
         _;
     }
 
+    /**
+     * Modifier that requires airline is not yet registered
+     */
+    modifier onlyNewAirline(address _airline)
+    {
+        require(flightSuretyData.isRegisteredAirline(_airline) == false, "Airline is already registered");
+        _;
+    }
+
     /********************************************************************************************/
     /*                                       CONSTRUCTOR                                        */
     /********************************************************************************************/
@@ -119,6 +128,7 @@ contract FlightSuretyApp {
                             external
                             requireIsOperational
                             onlyParticipatingAirline
+                            onlyNewAirline(_airline)
                             returns(bool success, uint256 votes)
     {
         flightSuretyData.registerAirline(_airline);

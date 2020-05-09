@@ -116,7 +116,7 @@ contract('Flight Surety Tests', async (accounts) => {
     assert.equal(web3.utils.fromWei(contractBalance, "ether"), 10, "Contract balance not funded correctly.")
   });
 
-  it('(airline) cannot register an Airline using registerAirline() if it is not funded', async () => {
+  it('(airline) can register an Airline using registerAirline() if it is funded', async () => {
     // ARRANGE
     let newAirline = accounts[2];
 
@@ -132,8 +132,47 @@ contract('Flight Surety Tests', async (accounts) => {
     let result = await config.flightSuretyData.isRegisteredAirline.call(newAirline); 
 
     // ASSERT
-    assert.equal(result, true, "Airline should be able to register another airline if it provided funding");
+    assert.equal(result, true, "Airline is not able to register another airline if it provided funding");
 
+  });
+
+  it('(airline) cannot register the same Airline using registerAirline() twice', async () => {
+    // ARRANGE
+    let newAirline = accounts[2];
+
+    // ACT
+    try {
+        let tx = await config.flightSuretyApp.registerAirline(newAirline, {from: config.firstAirline});
+    }
+    catch(e) {
+        reverted = true;
+    }
+
+    // ASSERT
+    assert.equal(reverted, true, "Same airline get registered twice");
+
+  });
+
+  it('(airline) can register third and fourth airline without voting', async () => {
+    // ARRANGE
+    let thirdAirline = accounts[3];
+    let fourthAirline = accounts[4];
+
+    // ACT
+    try {
+        await config.flightSuretyApp.registerAirline(thirdAirline, {from: config.firstAirline});
+        await config.flightSuretyApp.registerAirline(fourthAirline, {from: config.firstAirline});
+    }
+    catch(e) {
+
+    }
+
+    let result1 = await config.flightSuretyData.isRegisteredAirline.call(thirdAirline); 
+    let result2 = await config.flightSuretyData.isRegisteredAirline.call(fourthAirline); 
+
+    // ASSERT
+    assert.equal(result1, true, "Third airline is not registered");
+    assert.equal(result2, true, "Fourth airline is not registered");
   });
  
 
