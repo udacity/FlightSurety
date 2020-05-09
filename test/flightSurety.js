@@ -174,6 +174,86 @@ contract('Flight Surety Tests', async (accounts) => {
     assert.equal(result1, true, "Third airline is not registered");
     assert.equal(result2, true, "Fourth airline is not registered");
   });
- 
 
+  it('(airline) can register fifth airline if only one airline has provided funding', async () => {
+    // ARRANGE
+    let fifth = accounts[5];
+
+    // ACT
+    try {
+        await config.flightSuretyApp.registerAirline(fifth, {from: config.firstAirline});
+    }
+    catch(e) {
+
+    }
+
+
+    let result = await config.flightSuretyData.isRegisteredAirline.call(fifth); 
+
+    // ASSERT
+    assert.equal(result, true, "Fifth airline is not registered");
+  });
+
+  it('(airline) cannot register sixth airline if three airlines are funded', async () => {
+    // ARRANGE
+    let thirdAirline = accounts[3];
+    let fourthAirline = accounts[4];
+    await config.flightSuretyData.fund({ from: thirdAirline, value: web3.utils.toWei('10', "ether") });
+    await config.flightSuretyData.fund({ from: fourthAirline, value: web3.utils.toWei('10', "ether") });
+
+    let sixth = accounts[6];
+
+    // ACT
+    try {
+        await config.flightSuretyApp.registerAirline(sixth, {from: config.firstAirline});
+    }
+    catch(e) {
+        //console.log(e);
+    }
+
+    let result = await config.flightSuretyData.isRegisteredAirline.call(sixth); 
+
+    // ASSERT
+    assert.equal(result, false, "Sixth airline should not be registered");
+  });
+ 
+  it('(airline) cannot register sixth airline for more than once', async () => {
+    // ARRANGE
+
+    let sixth = accounts[6];
+    let reverted = false;
+
+    // ACT
+    try {
+        await config.flightSuretyApp.registerAirline(sixth, {from: config.firstAirline});
+    }
+    catch(e) {
+        reverted = true;
+    }
+
+    let result = await config.flightSuretyData.isRegisteredAirline.call(sixth); 
+
+    // ASSERT
+    assert.equal(result, false, "Sixth airline should not be registered");
+    assert.equal(reverted, true, "Access not blocked due to double voting");
+  });
+
+  it('(airline) can register sixth airline if two out of three airlines are voted', async () => {
+    // ARRANGE
+    let thirdAirline = accounts[3];
+    let sixth = accounts[6];
+
+    // ACT
+    try {
+        await config.flightSuretyApp.registerAirline(sixth, {from: thirdAirline});
+    }
+    catch(e) {
+
+    }
+
+    let result = await config.flightSuretyData.isRegisteredAirline.call(sixth); 
+
+    // ASSERT
+    assert.equal(result, true, "Sixth airline should be registered");
+  });
 });

@@ -35,6 +35,9 @@ contract FlightSuretyApp {
         address airline;
     }
     mapping(bytes32 => Flight) private flights;
+    mapping(address => address[]) private airlineVoteCounts; // new airline ==> array of airlines that approve this new airline
+
+    uint8 private constant MINIMUM_AIRLINES_TO_VOTE = 4;
 
  
     /********************************************************************************************/
@@ -131,8 +134,38 @@ contract FlightSuretyApp {
                             onlyNewAirline(_airline)
                             returns(bool success, uint256 votes)
     {
-        flightSuretyData.registerAirline(_airline);
-        return (true, 1);
+        if (flightSuretyData.getNumberOfRegisteredAirlines() < MINIMUM_AIRLINES_TO_VOTE) {
+            flightSuretyData.registerAirline(_airline);
+            return (true, 1);
+        } else {
+            return voteAirline(_airline);
+        }
+    }
+
+    function voteAirline(
+                            address _airline
+                        )
+                        private
+                        returns(bool success, uint256 votes)
+    {
+        bool isDuplicate = false;
+        for(uint i = 0; i < airlineVoteCounts[_airline].length; i++) {
+            if (airlineVoteCounts[_airline][i] == msg.sender) {
+                isDuplicate = true;
+                break;
+            }
+        }
+        require(!isDuplicate, "Each airline can only vote once");
+        airlineVoteCounts[_airline].push(msg.sender);
+
+        uint256 voteCount = airlineVoteCounts[_airline].length;
+        uint256 voterCount = flightSuretyData.getNumberOfParticipatingAirlines();
+        if (voteCount > voterCount.div(2) ) {
+            flightSuretyData.registerAirline(_airline);
+            delete airlineVoteCounts[_airline];
+            return (true, voteCount);
+        }
+        return (false, voteCount);
     }
 
 

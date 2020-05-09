@@ -13,8 +13,8 @@ contract FlightSuretyData is IFlightSuretyData{
     address private contractOwner;                                      // Account used to deploy contract
     bool private operational = true;                                    // Blocks all state changes throughout the contract if false
     bool private testingMode = false;
-    uint256 private participantCount = 0;
-    uint256 private registedCount = 0;
+    uint private participantCount = 0;
+    uint private registedCount = 0;
     mapping(address => bool) private authorizedContracts;
 
     FlightSuretyData private flightSuretyData;
@@ -46,7 +46,7 @@ contract FlightSuretyData is IFlightSuretyData{
     {
         contractOwner = msg.sender;
         registedAirlines[_firstAirline] = true;
-        registedCount.add(1);
+        registedCount++;
         emit Registered(_firstAirline);
     }
 
@@ -194,7 +194,7 @@ contract FlightSuretyData is IFlightSuretyData{
                             onlyAuthorizedContract
     {
         registedAirlines[_airline] = true;
-        registedCount.add(1);
+        registedCount++;
         emit Registered(_airline);
     }
 
@@ -203,7 +203,7 @@ contract FlightSuretyData is IFlightSuretyData{
         return registedAirlines[_airline];
     }
 
-    function getNumberOfRegisteredAirlines() external onlyAuthorizedContract view returns (uint) {
+    function getNumberOfRegisteredAirlines() external view returns (uint256) {
         return registedCount;
     }
 
@@ -264,7 +264,7 @@ contract FlightSuretyData is IFlightSuretyData{
         fundings[msg.sender] = currentFundedAmount;
         if (currentFundedAmount >= 10 ether && participatingAirlines[msg.sender] == false) {
             participatingAirlines[msg.sender] = true;
-            participantCount.add(1);
+            participantCount++;
             emit Participating(msg.sender);
         }
     }
@@ -274,7 +274,7 @@ contract FlightSuretyData is IFlightSuretyData{
         return participatingAirlines[_airline];
     }
 
-    function getNumberOfParticipatingAirlines() external onlyAuthorizedContract view returns (uint) {
+    function getNumberOfParticipatingAirlines() external view returns (uint256) {
         return participantCount;
     }
 
