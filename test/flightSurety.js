@@ -111,25 +111,28 @@ contract('Flight Surety Tests', async (accounts) => {
     let result = await config.flightSuretyData.isRegisteredAirline.call(config.firstAirline);
     assert.equal(result, true, "Airline did become participating airline");
     let contractBalance = await web3.eth.getBalance(config.flightSuretyData.address);
-    console.log(contractBalance);
+
+    assert.equal(result, true, "Airline did become participating airline");
+    assert.equal(web3.utils.fromWei(contractBalance, "ether"), 10, "Contract balance not funded correctly.")
   });
 
   it('(airline) cannot register an Airline using registerAirline() if it is not funded', async () => {
-    
     // ARRANGE
     let newAirline = accounts[2];
 
     // ACT
     try {
-        await config.flightSuretyApp.registerAirline(newAirline, {from: config.firstAirline});
+        let tx = await config.flightSuretyApp.registerAirline(newAirline, {from: config.firstAirline});
+        truffleAssert.eventEmitted(tx, "Registered", null, "Invalid event emitted"); 
     }
     catch(e) {
 
     }
+
     let result = await config.flightSuretyData.isRegisteredAirline.call(newAirline); 
 
     // ASSERT
-    assert.equal(result, false, "Airline should not be able to register another airline if it hasn't provided funding");
+    assert.equal(result, true, "Airline should be able to register another airline if it provided funding");
 
   });
  

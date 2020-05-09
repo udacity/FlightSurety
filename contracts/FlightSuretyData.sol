@@ -1,8 +1,9 @@
 pragma solidity ^0.4.25;
 
 import "../node_modules/openzeppelin-solidity/contracts/math/SafeMath.sol";
+import "./interfaces/IFlightSuretyData.sol";
 
-contract FlightSuretyData {
+contract FlightSuretyData is IFlightSuretyData{
     using SafeMath for uint256;
 
     /********************************************************************************************/
@@ -91,7 +92,7 @@ contract FlightSuretyData {
         _;
     }
 
-       /**
+    /**
      * Modifier that requires airline is participating
      */
     modifier onlyParticipatingAirline()
