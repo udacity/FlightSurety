@@ -11,11 +11,25 @@ contract FlightSuretyData {
 
     address private contractOwner;                                      // Account used to deploy contract
     bool private operational = true;                                    // Blocks all state changes throughout the contract if false
+    mapping(address => bool) private authorizedContracts;
 
     FlightSuretyData private flightSuretyData;
+
+    enum AirlineState {
+        Registered,
+        Participating
+    }
+
+    mapping (address => AirlineState) private airlines;
+    mapping (address => uint) private fund; // airline funding so far, helps to convert Registered airline to Participating airline
+
+
+
     /********************************************************************************************/
     /*                                       EVENT DEFINITIONS                                  */
     /********************************************************************************************/
+    // Airline Registed
+    event Registered(address airlineAddress);
 
 
     /**
@@ -24,12 +38,12 @@ contract FlightSuretyData {
     */
     constructor
                                 (
-                                    address dataContract
                                 )
                                 public
     {
         contractOwner = msg.sender;
-        flightSuretyData = FlightSuretyData(dataContract);
+        airlines[contractOwner] = AirlineState.Registered;
+        emit Registered(contractOwner);
     }
 
     /********************************************************************************************/
@@ -58,6 +72,26 @@ contract FlightSuretyData {
         require(msg.sender == contractOwner, "Caller is not contract owner");
         _;
     }
+
+    /**
+     * Modifier that requires the "Caller" account is authorized
+     */
+    modifier onlyAuthorizedContract()
+    {
+        require(authorizedContracts[msg.sender] == true, "Caller is not authorized");
+        _;
+    }
+
+    /**
+     * Modifier that requires airline is registred
+     */
+    modifier onlyRegistredAirline(address _airline)
+    {
+        require(airlines[_airline] == AirlineState.Registered, "Airline is not registred");
+        _;
+    }
+
+
 
     /********************************************************************************************/
     /*                                       UTILITY FUNCTIONS                                  */
@@ -92,6 +126,30 @@ contract FlightSuretyData {
         operational = mode;
     }
 
+    /**
+     * @dev authorize caller contract FlightSuretyApp
+     */
+    function authorizeCaller(address contractAddress) external requireContractOwner
+    {
+        authorizedContracts[contractAddress] = true;
+    }
+
+    /**
+     * @dev remove authorized caller contract FlightSuretyApp
+     */
+    function removeAuthorizedCaller(address contractAddress) external requireContractOwner
+    {
+        delete authorizedContracts[contractAddress];
+    }
+
+    /**
+     * @dev check if caller is Authorized
+     */
+    function isCallerAuthorized(address contractAddress) public view requireContractOwner returns (bool)
+    {
+        return authorizedContracts[contractAddress];
+    }
+
     /********************************************************************************************/
     /*                                     SMART CONTRACT FUNCTIONS                             */
     /********************************************************************************************/
@@ -103,10 +161,13 @@ contract FlightSuretyData {
     */
     function registerAirline
                             (
+                                address _airline
                             )
                             external
-                            pure
+                            requireIsOperational
     {
+        airlines[contractOwner] = AirlineState.Registered;
+        emit Registered(contractOwner);
     }
 
 
@@ -151,13 +212,15 @@ contract FlightSuretyData {
     * @dev Initial funding for the insurance. Unless there are too many delayed flights
     *      resulting in insurance payouts, the contract should be self-sustaining
     *
-    */   
+    */
     function fund
                             (
                             )
                             public
                             payable
+                            requireIsOperational
     {
+
     }
 
     function getFlightKey
