@@ -187,7 +187,7 @@ contract FlightSuretyData {
                             )
                             external
                             requireIsOperational
-                            onlyParticipatingAirline
+                            onlyAuthorizedContract
     {
         registedAirlines[_airline] = true;
         emit Registered(_airline);
@@ -257,6 +257,11 @@ contract FlightSuretyData {
             participatingAirlines[msg.sender] = true;
             emit Participating(msg.sender);
         }
+    }
+
+    function isParticipatingAirline(address _airline) public view returns (bool)
+    {
+        return participatingAirlines[_airline];
     }
 
     function getFlightKey

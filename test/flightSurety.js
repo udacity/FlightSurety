@@ -85,29 +85,53 @@ contract('Flight Surety Tests', async (accounts) => {
     assert.equal(result, true, "First airline is not registered");
   });
 
-  it('(airline) registered airline can fund the contract and become participating airline', async () => {
-    const tx = await config.flightSuretyData.fund({ from: config.firstAirline, value: web3.utils.toWei('10', "ether") });
-    truffleAssert.eventEmitted(tx, "Participating", null, "Invalid event emitted"); 
+    it('(airline) cannot register an Airline using registerAirline() if it is not funded', async () => {
+    
+    // ARRANGE
+    let newAirline = accounts[2];
+
+    // ACT
+    try {
+        await config.flightSuretyApp.registerAirline(newAirline, {from: config.firstAirline});
+    }
+    catch(e) {
+
+    }
+    let result = await config.flightSuretyData.isRegisteredAirline.call(newAirline); 
+
+    // ASSERT
+    assert.equal(result, false, "Airline should not be able to register another airline if it hasn't provided funding");
+
   });
 
-//   it('(airline) cannot register an Airline using registerAirline() if it is not funded', async () => {
+  it('(airline) registered airline can fund the contract and become participating airline', async () => {
+    const tx1 = await config.flightSuretyData.fund({ from: config.firstAirline, value: web3.utils.toWei('5', "ether") });
+    const tx2 = await config.flightSuretyData.fund({ from: config.firstAirline, value: web3.utils.toWei('5', "ether") });
+    truffleAssert.eventEmitted(tx2, "Participating", null, "Invalid event emitted"); 
+    let result = await config.flightSuretyData.isRegisteredAirline.call(config.firstAirline);
+    assert.equal(result, true, "Airline did become participating airline");
+    let contractBalance = await web3.eth.getBalance(config.flightSuretyData.address);
+    console.log(contractBalance);
+  });
+
+  it('(airline) cannot register an Airline using registerAirline() if it is not funded', async () => {
     
-//     // ARRANGE
-//     let newAirline = accounts[2];
+    // ARRANGE
+    let newAirline = accounts[2];
 
-//     // ACT
-//     try {
-//         await config.flightSuretyApp.registerAirline(newAirline, {from: config.firstAirline});
-//     }
-//     catch(e) {
+    // ACT
+    try {
+        await config.flightSuretyApp.registerAirline(newAirline, {from: config.firstAirline});
+    }
+    catch(e) {
 
-//     }
-//     let result = await config.flightSuretyData.isRegisteredAirline.call(newAirline); 
+    }
+    let result = await config.flightSuretyData.isRegisteredAirline.call(newAirline); 
 
-//     // ASSERT
-//     assert.equal(result, false, "Airline should not be able to register another airline if it hasn't provided funding");
+    // ASSERT
+    assert.equal(result, false, "Airline should not be able to register another airline if it hasn't provided funding");
 
-//   });
+  });
  
 
 });
