@@ -23,6 +23,9 @@ contract FlightSuretyData is IFlightSuretyData{
     mapping (address => bool) private participatingAirlines; // fully funded airlines
     mapping (address => uint256) private fundings; // airlines fundings so far, helps to convert Registered airlines to Participating airlines
 
+    // Passnager Data
+    mapping(address => mapping(bytes32 => uint256)) private passengerIssurances; // Passenger => FlightKey => Amount Paid
+    mapping(address => uint256) private passengerAccount;
 
 
     /********************************************************************************************/
@@ -211,14 +214,21 @@ contract FlightSuretyData is IFlightSuretyData{
    /**
     * @dev Buy insurance for a flight
     *
-    */   
+    */
     function buy
-                            (                             
+                            (
+                                address passenger,
+                                address airline,
+                                string calldata flight,
+                                uint256 timestamp
                             )
                             external
                             payable
+                            requireIsOperational
+                            onlyAuthorizedContract
     {
-
+        bytes32 flightKey = getFlightKey(airline, flight, timestamp);
+        passengerIssurances[passenger][flightKey] = passengerIssurances[passenger][flightKey].add(msg.value);
     }
 
     /**
@@ -226,12 +236,20 @@ contract FlightSuretyData is IFlightSuretyData{
     */
     function creditInsurees
                                 (
+                                    address passenger,
+                                    address airline,
+                                    string calldata flight,
+                                    uint256 timestamp,
+                                    uint256 credit
                                 )
                                 external
-                                pure
+                                requireIsOperational
+                                onlyAuthorizedContract
     {
+        bytes32 flightKey = getFlightKey(airline, flight, timestamp);
+        delete passengerIssurances[passenger][flightKey];
+        passengerAccount[passenger] = passengerAccount[passenger].add(credit);
     }
-    
 
     /**
      *  @dev Transfers eligible payout funds to insuree
@@ -239,10 +257,16 @@ contract FlightSuretyData is IFlightSuretyData{
     */
     function pay
                             (
+                                address payable passenger
                             )
                             external
-                            pure
+                            requireIsOperational
+                            onlyAuthorizedContract
     {
+        uint256 credit = passengerAccount[passenger];
+        require(credit > 0, "No credit available for withdraw");
+        passengerAccount[passenger] = 0;
+        passenger.transfer(credit);
     }
 
    /**
@@ -284,8 +308,8 @@ contract FlightSuretyData is IFlightSuretyData{
                             string memory flight,
                             uint256 timestamp
                         )
-                        pure
                         internal
+                        pure
                         returns(bytes32)
     {
         return keccak256(abi.encodePacked(airline, flight, timestamp));
@@ -295,9 +319,9 @@ contract FlightSuretyData is IFlightSuretyData{
     * @dev Fallback function for funding smart contract.
     *
     */
-    function() 
-                            external 
-                            payable 
+    function()
+                            external
+                            payable
     {
         fund();
     }
