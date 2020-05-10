@@ -24,6 +24,7 @@ contract FlightSuretyApp {
     uint8 private constant STATUS_CODE_LATE_WEATHER = 30;
     uint8 private constant STATUS_CODE_LATE_TECHNICAL = 40;
     uint8 private constant STATUS_CODE_LATE_OTHER = 50;
+    uint8 private constant STATUS_CODE_LATE_AIRLINE_PROCESSED = 60;
 
     address private contractOwner;          // Account used to deploy contract
     IFlightSuretyData private flightSuretyData;
@@ -33,6 +34,7 @@ contract FlightSuretyApp {
         uint8 statusCode;
         uint256 updatedTimestamp;
         address airline;
+        address[] insurees;
     }
     mapping(bytes32 => Flight) private flights;
     mapping(address => address[]) private airlineVoteCounts; // new airline ==> array of airlines that approve this new airline
@@ -195,7 +197,7 @@ contract FlightSuretyApp {
     {
         bytes32 flightKey = getFlightKey(msg.sender, flightCode, timestamp);
         require(!flights[flightKey].isRegistered, "Flight has been registered");
-        flights[flightKey] = Flight(true, STATUS_CODE_UNKNOWN, timestamp, msg.sender);
+        flights[flightKey] = Flight(true, STATUS_CODE_UNKNOWN, timestamp, msg.sender, new address[](0));
     }
 
     function buy(
@@ -211,7 +213,7 @@ contract FlightSuretyApp {
         require(msg.value > 0 wei, "Insufficient fund");
         bytes32 flightKey = getFlightKey(airline, flightCode, timestamp);
         require(flights[flightKey].isRegistered, "Flight has not been registered");
-
+        flights[flightKey].insurees.push(msg.sender);
         if (msg.value > MAX_PREMIUM) {
             flightSuretyData.buy{value: MAX_PREMIUM}(msg.sender, airline, flightCode, timestamp);
         } else {
@@ -232,8 +234,19 @@ contract FlightSuretyApp {
                                     uint8 statusCode
                                 )
                                 internal
-                                pure
     {
+        bytes32 flightKey = getFlightKey(airline, flight, timestamp);
+        flights[flightKey].statusCode = statusCode;
+        if(statusCode == STATUS_CODE_LATE_AIRLINE) {
+            for(uint i = 0; i<flights[flightKey].insurees.length; i++){
+                address insuree = flights[flightKey].insurees[i];
+                uint256 premium = flightSuretyData.getPremium(insuree, airline, flight, timestamp);
+                if (premium > 0) {
+                    flightSuretyData.creditInsurees(insuree, airline, flight, timestamp, premium.mul(15).div(10));
+                }
+            }
+            flights[flightKey].statusCode = STATUS_CODE_LATE_AIRLINE_PROCESSED;
+        }
     }
 
 

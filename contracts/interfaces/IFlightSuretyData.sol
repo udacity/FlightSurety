@@ -29,4 +29,13 @@ interface IFlightSuretyData {
               )
               external;
 
+   function getPremium(
+                        address passenger,
+                        address airline,
+                        string calldata flight,
+                        uint256 timestamp
+                      )
+                      external
+                      view
+                      returns (uint256);
 }

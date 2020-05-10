@@ -3,7 +3,7 @@ pragma solidity ^0.6.0;
 import "../node_modules/openzeppelin-solidity/contracts/math/SafeMath.sol";
 import "./interfaces/IFlightSuretyData.sol";
 
-abstract contract FlightSuretyData is IFlightSuretyData{
+contract FlightSuretyData is IFlightSuretyData{
     using SafeMath for uint256;
 
     /********************************************************************************************/
@@ -232,6 +232,21 @@ abstract contract FlightSuretyData is IFlightSuretyData{
     {
         bytes32 flightKey = getFlightKey(airline, flight, timestamp);
         passengerIssurances[passenger][flightKey] = passengerIssurances[passenger][flightKey].add(msg.value);
+    }
+
+    function getPremium(
+                            address passenger,
+                            address airline,
+                            string calldata flight,
+                            uint256 timestamp
+                        )
+                        external
+                        view
+                        override
+                        returns (uint256)
+    {
+        bytes32 flightKey = getFlightKey(airline, flight, timestamp);
+        return passengerIssurances[passenger][flightKey];
     }
 
     /**
