@@ -9,6 +9,10 @@ module.exports = {
       },
       network_id: '*',
       gas: 9999999
+    },
+
+    develop: {
+      accounts: 30,
     }
   },
   compilers: {

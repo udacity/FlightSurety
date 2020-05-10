@@ -289,6 +289,20 @@ contract FlightSuretyData is IFlightSuretyData{
         passenger.transfer(credit);
     }
 
+    function getBalance(
+                            address passenger
+                        )
+                        external
+                        view
+                        override
+                        requireIsOperational
+                        onlyAuthorizedContract
+                        returns (uint256)
+    {
+        uint256 credit = passengerAccount[passenger];
+        return credit;
+    }
+
    /**
     * @dev Initial funding for the insurance. Unless there are too many delayed flights
     *      resulting in insurance payouts, the contract should be self-sustaining

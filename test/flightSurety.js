@@ -5,11 +5,14 @@ const truffleAssert = require("truffle-assertions");
 
 contract('Flight Surety Tests', async (accounts) => {
 
+  const flight = 'ND1309'; // Course number
+  const timestamp = Math.floor(Date.now() / 1000);
   var config;
   before('setup contract', async () => {
     config = await Test.Config(accounts);
     await config.flightSuretyData.authorizeCaller(config.flightSuretyApp.address);
   });
+  
 
   /****************************************************************************************/
   /* Operations and Settings                                                              */
@@ -242,18 +245,50 @@ contract('Flight Surety Tests', async (accounts) => {
     // ARRANGE
     let thirdAirline = accounts[3];
     let sixth = accounts[6];
-
+    let reverted = false;
     // ACT
     try {
         await config.flightSuretyApp.registerAirline(sixth, {from: thirdAirline});
     }
     catch(e) {
-
+        reverted = true;
     }
 
     let result = await config.flightSuretyData.isRegisteredAirline.call(sixth); 
 
     // ASSERT
     assert.equal(result, true, "Sixth airline should be registered");
+  });
+
+  it('(flight) can be registered', async () => {
+    // ARRANGE
+
+    // ACT
+    try {
+        await config.flightSuretyApp.registerFlight(flight, timestamp, {from: config.firstAirline});
+    }
+    catch(e) {
+    }
+    let result = await config.flightSuretyApp.isRegisteredFlight.call(config.firstAirline, flight, timestamp); 
+
+    // ASSERT
+    assert.equal(result, true, "Flight was not registered");
+  });
+
+  it('(passenger) can buy insurance', async () => {
+    // ARRANGE
+    let passenger = accounts[7];
+
+    // ACT
+    try {
+        await config.flightSuretyApp.buy(config.firstAirline, flight, timestamp, {from: passenger, value: web3.utils.toWei('0.5', "ether") });
+    }
+    catch(e) {
+      console.log(e);
+
+    }
+    let premium = await config.flightSuretyApp.getPremium.call(config.firstAirline, flight, timestamp, {from: passenger});
+    assert.equal(premium, web3.utils.toWei('0.5', "ether"), "Insurance premium is incorrect");
+
   });
 });

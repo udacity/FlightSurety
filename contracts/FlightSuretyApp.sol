@@ -34,13 +34,18 @@ contract FlightSuretyApp {
         uint8 statusCode;
         uint256 updatedTimestamp;
         address airline;
-        address[] insurees;
     }
     mapping(bytes32 => Flight) private flights;
+    mapping(bytes32 => address[]) private insurees;
     mapping(address => address[]) private airlineVoteCounts; // new airline ==> array of airlines that approve this new airline
 
     uint8 private constant MINIMUM_AIRLINES_TO_VOTE = 4;
     uint256 private constant MAX_PREMIUM = 1 ether;
+
+
+    event Purchased(address passenger, address airline, string flightCode, uint256 timestamp, uint256 value, uint insurees);
+    event ProcessingLateFlight(address airline, string flightCode, uint256 timestamp, uint insurees);
+    event CreditInsuree(address passenger, address airline, string flightCode, uint256 timestamp, uint256 value);
 
 
     /********************************************************************************************/
@@ -197,7 +202,21 @@ contract FlightSuretyApp {
     {
         bytes32 flightKey = getFlightKey(msg.sender, flightCode, timestamp);
         require(!flights[flightKey].isRegistered, "Flight has been registered");
-        flights[flightKey] = Flight(true, STATUS_CODE_UNKNOWN, timestamp, msg.sender, new address[](0));
+        flights[flightKey] = Flight(true, STATUS_CODE_UNKNOWN, timestamp, msg.sender);
+    }
+
+    function isRegisteredFlight(
+                                    address airline,
+                                    string memory flightCode,
+                                    uint256 timestamp
+                                )
+                                public
+                                view
+                                requireIsOperational
+                                returns (bool)
+    {
+        bytes32 flightKey = getFlightKey(airline, flightCode, timestamp);
+        return flights[flightKey].isRegistered;
     }
 
     function buy(
@@ -211,15 +230,45 @@ contract FlightSuretyApp {
                 requireIsOperational
     {
         require(msg.value > 0 wei, "Insufficient fund");
+        require(isRegisteredFlight(airline, flightCode, timestamp), "Flight has not been registered");
         bytes32 flightKey = getFlightKey(airline, flightCode, timestamp);
-        require(flights[flightKey].isRegistered, "Flight has not been registered");
-        flights[flightKey].insurees.push(msg.sender);
+        insurees[flightKey].push(msg.sender);
         if (msg.value > MAX_PREMIUM) {
             flightSuretyData.buy{value: MAX_PREMIUM}(msg.sender, airline, flightCode, timestamp);
+            emit Purchased(msg.sender, airline, flightCode, timestamp, MAX_PREMIUM, insurees[flightKey].length);
         } else {
             flightSuretyData.buy{value: msg.value}(msg.sender, airline, flightCode, timestamp);
+            emit Purchased(msg.sender, airline, flightCode, timestamp, msg.value, insurees[flightKey].length);
         }
-        
+    }
+
+    function getPremium(
+                            address airline,
+                            string calldata flight,
+                            uint256 timestamp
+                        )
+                        external
+                        view
+                        requireIsOperational
+                        returns (uint256)
+    {
+        return flightSuretyData.getPremium(msg.sender, airline, flight, timestamp);
+    }
+
+    function getBalance()
+                        external
+                        view
+                        requireIsOperational
+                        returns (uint256)
+    {
+        return flightSuretyData.getBalance(msg.sender);
+    }
+
+    function withdraw() 
+                        external
+                        requireIsOperational
+    {
+        flightSuretyData.pay(msg.sender);
     }
 
    /**
@@ -234,14 +283,19 @@ contract FlightSuretyApp {
                                     uint8 statusCode
                                 )
                                 internal
+                                requireIsOperational
     {
         bytes32 flightKey = getFlightKey(airline, flight, timestamp);
+        require(flights[flightKey].statusCode != STATUS_CODE_LATE_AIRLINE_PROCESSED, "The flight has been processed") ;
         flights[flightKey].statusCode = statusCode;
         if(statusCode == STATUS_CODE_LATE_AIRLINE) {
-            for(uint i = 0; i<flights[flightKey].insurees.length; i++){
-                address insuree = flights[flightKey].insurees[i];
+            emit ProcessingLateFlight(airline, flight, timestamp, insurees[flightKey].length);
+            for(uint i = 0; i<insurees[flightKey].length; i++){
+
+                address insuree = insurees[flightKey][i];
                 uint256 premium = flightSuretyData.getPremium(insuree, airline, flight, timestamp);
                 if (premium > 0) {
+                    emit CreditInsuree(insuree, airline, flight, timestamp, premium.mul(15).div(10));
                     flightSuretyData.creditInsurees(insuree, airline, flight, timestamp, premium.mul(15).div(10));
                 }
             }
