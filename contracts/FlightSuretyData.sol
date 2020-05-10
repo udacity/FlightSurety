@@ -1,9 +1,9 @@
-pragma solidity ^0.4.25;
+pragma solidity ^0.6.0;
 
 import "../node_modules/openzeppelin-solidity/contracts/math/SafeMath.sol";
 import "./interfaces/IFlightSuretyData.sol";
 
-contract FlightSuretyData is IFlightSuretyData{
+abstract contract FlightSuretyData is IFlightSuretyData{
     using SafeMath for uint256;
 
     /********************************************************************************************/
@@ -121,6 +121,7 @@ contract FlightSuretyData is IFlightSuretyData{
     function isOperational()
                             public
                             view
+                            override
                             returns(bool)
     {
         return operational;
@@ -193,6 +194,7 @@ contract FlightSuretyData is IFlightSuretyData{
                                 address _airline
                             )
                             external
+                            override
                             requireIsOperational
                             onlyAuthorizedContract
     {
@@ -201,12 +203,12 @@ contract FlightSuretyData is IFlightSuretyData{
         emit Registered(_airline);
     }
 
-    function isRegisteredAirline(address _airline) public view returns (bool)
+    function isRegisteredAirline(address _airline) public view override returns (bool)
     {
         return registedAirlines[_airline];
     }
 
-    function getNumberOfRegisteredAirlines() external view returns (uint256) {
+    function getNumberOfRegisteredAirlines() external view override returns (uint256) {
         return registedCount;
     }
 
@@ -224,6 +226,7 @@ contract FlightSuretyData is IFlightSuretyData{
                             )
                             external
                             payable
+                            override
                             requireIsOperational
                             onlyAuthorizedContract
     {
@@ -243,6 +246,7 @@ contract FlightSuretyData is IFlightSuretyData{
                                     uint256 credit
                                 )
                                 external
+                                override
                                 requireIsOperational
                                 onlyAuthorizedContract
     {
@@ -260,6 +264,7 @@ contract FlightSuretyData is IFlightSuretyData{
                                 address payable passenger
                             )
                             external
+                            override
                             requireIsOperational
                             onlyAuthorizedContract
     {
@@ -293,12 +298,12 @@ contract FlightSuretyData is IFlightSuretyData{
         }
     }
 
-    function isParticipatingAirline(address _airline) public view returns (bool)
+    function isParticipatingAirline(address _airline) public view override returns (bool)
     {
         return participatingAirlines[_airline];
     }
 
-    function getNumberOfParticipatingAirlines() external view returns (uint256) {
+    function getNumberOfParticipatingAirlines() external view override returns (uint256) {
         return participantCount;
     }
 
@@ -319,7 +324,14 @@ contract FlightSuretyData is IFlightSuretyData{
     * @dev Fallback function for funding smart contract.
     *
     */
-    function()
+    fallback()
+                            external
+                            payable
+    {
+        fund();
+    }
+
+    receive()
                             external
                             payable
     {
