@@ -208,11 +208,16 @@ contract FlightSuretyApp {
                 checkValue
                 requireIsOperational
     {
+        require(msg.value > 0 wei, "Insufficient fund");
         bytes32 flightKey = getFlightKey(airline, flightCode, timestamp);
         require(flights[flightKey].isRegistered, "Flight has not been registered");
 
-
-        flightSuretyData.buy{value: msg.value}(msg.sender, airline, flightCode, timestamp);
+        if (msg.value > MAX_PREMIUM) {
+            flightSuretyData.buy{value: MAX_PREMIUM}(msg.sender, airline, flightCode, timestamp);
+        } else {
+            flightSuretyData.buy{value: msg.value}(msg.sender, airline, flightCode, timestamp);
+        }
+        
     }
 
    /**
