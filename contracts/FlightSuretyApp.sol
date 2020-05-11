@@ -104,6 +104,12 @@ contract FlightSuretyApp {
         }
     }
 
+    modifier onlyNewOracle()
+    {
+        require(oracles[msg.sender].isRegistered == false, "Oracle is already registered");
+        _;
+    }
+
     /********************************************************************************************/
     /*                                       CONSTRUCTOR                                        */
     /********************************************************************************************/
@@ -375,6 +381,7 @@ contract FlightSuretyApp {
                             )
                             external
                             payable
+                            onlyNewOracle
     {
         // Require registration fee
         require(msg.value >= REGISTRATION_FEE, "Registration fee is required");
