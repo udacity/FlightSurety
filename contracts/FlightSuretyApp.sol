@@ -232,11 +232,11 @@ contract FlightSuretyApp {
                 )
                 external
                 payable
-                checkValue
+                //checkValue
                 requireIsOperational
     {
-        require(msg.value > 0 wei, "Insufficient fund");
-        require(isRegisteredFlight(airline, flightCode, timestamp), "Flight has not been registered");
+        //require(msg.value > 0 wei, "Insufficient fund");
+        //require(isRegisteredFlight(airline, flightCode, timestamp), "Flight has not been registered");
         bytes32 flightKey = getFlightKey(airline, flightCode, timestamp);
         insurees[flightKey].push(msg.sender);
         if (msg.value > MAX_PREMIUM) {

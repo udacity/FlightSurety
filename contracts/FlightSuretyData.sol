@@ -103,7 +103,16 @@ contract FlightSuretyData is IFlightSuretyData{
      */
     modifier onlyParticipatingAirline()
     {
-        require(participatingAirlines[msg.sender] == true, "Airline is not registred");
+        require(participatingAirlines[msg.sender] == true, "Airline is not particiapating");
+        _;
+    }
+
+    /**
+     * Modifier that requires airline is participating
+     */
+    modifier onlyNonParticipatingAirline()
+    {
+        require(participatingAirlines[msg.sender] == false, "Airline is particiapating");
         _;
     }
 
@@ -316,6 +325,7 @@ contract FlightSuretyData is IFlightSuretyData{
                             payable
                             requireIsOperational
                             onlyRegistredAirline
+                            onlyNonParticipatingAirline
     {
         uint256 currentFundedAmount = fundings[msg.sender];
         currentFundedAmount = currentFundedAmount.add(msg.value);

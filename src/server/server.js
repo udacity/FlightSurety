@@ -53,24 +53,25 @@ flightSuretyApp.events.OracleRequest({
     let airline = event.returnValues.airline;
     let flight = event.returnValues.flight;
     let timestamp = event.returnValues.timestamp;
-    let status = (Math.floor(Math.random() * Math.floor(5)) * 10);
+    let status = 20; //(Math.floor(Math.random() * Math.floor(5)) * 10);
     console.log("random status", status);
     for (let i = 0; i < oracles.length; i++) {
       for (let j = 0; j < 3; j++) {
         if (event.returnValues.index == oracles[i][1][j]) {
           console.log("submitOracleResponse from ", oracles[i][0]);
-          try {
-            flightSuretyApp.methods
-            .submitOracleResponse(index, airline, flight, timestamp, status)
-            .send({
-              from: oracles[i][0],
-              gas: 3000000
-            }).catch((error) => {
-              console.log(error);
-            });
-          } catch (e) {
-            console.log(e)
-          }
+          flightSuretyApp.methods
+          .submitOracleResponse(index, airline, flight, timestamp, status)
+          .send({
+            from: oracles[i][0],
+            gas: 3000000
+          },(error, result) => {
+            if(!error){
+                console.log(`Oracle ${oracles[i][0]} submitted flight status code of ${status}`)
+            }       
+            else {
+                console.log(`oracle ${oracles[i][0]} was rejected`)
+            }
+          });
         }
       }
     }

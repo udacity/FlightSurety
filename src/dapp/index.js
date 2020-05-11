@@ -15,17 +15,69 @@ import './flightsurety.css';
             console.log(error,result);
             display('Operational Status', 'Check if contract is operational', [ { label: 'Operational Status', error: error, value: result} ]);
         });
+
+        contract.flights[0].timestamp = Math.floor(Date.now() / 1000);
+        console.log("Timestamp of flight: "+contract.flights[0].timestamp);
+        contract.registerFlight(contract.flights[0], (error, result) => {
+            console.log(error)
+            // Retrieve the information for the flight just registered to the Blockchain
+        });
     
 
         // User-submitted transaction
         DOM.elid('submit-oracle').addEventListener('click', () => {
-            let flight = DOM.elid('flight-number').value;
+            let flight = null;
+            let flightCode = DOM.elid('flight-number').value;
+            for(let i = 0; i < contract.flights.length; i++) {
+                if(contract.flights[i].flight == flightCode) {
+                    flight = contract.flights[i];
+                    break;
+                }
+            }
             // Write transaction
-            contract.fetchFlightStatus(flight, (error, result) => {
-                display('Oracles', 'Trigger oracles', [ { label: 'Fetch Flight Status', error: error, value: result.flight + ' ' + result.timestamp} ]);
-            });
+            if (flight != null) {
+                contract.fetchFlightStatus(flight, (error, result) => {
+                    display('Oracles', 'Trigger oracles', [ { label: 'Fetch Flight Status', error: error, value: result.flight + ' ' + result.timestamp} ]);
+                });
+            }
         })
     
+        DOM.elid('buy').addEventListener('click', () => {
+            let flight = null;
+            let flightCode = DOM.elid('flight-number').value;
+            for(let i = 0; i < contract.flights.length; i++) {
+                if(contract.flights[i].flight == flightCode) {
+                    flight = contract.flights[i];
+                    break;
+                }
+            }
+
+            if (flight != null) {
+                let premium = DOM.elid('insurance-premium').value;
+                console.log(flight);
+                console.log(premium);
+                contract.buy(flight, premium, (error, result) => {
+                    console.log(error, result);
+                    display('Passenger', 'Buy Insurance', [ { label: 'Flight: ', error: error, value: flight.flight + ' for ' + premium + ' wei'} ]);
+                });
+            }
+        })
+
+        DOM.elid('balance').addEventListener('click', () => {
+
+            contract.getBalance((error, result) => {
+                console.log(error, result);
+                display('Passenger', 'Balance', [ { label: 'Current balance: ', error: error, value: result} ]);
+            });
+        })
+
+        DOM.elid('withdraw').addEventListener('click', () => {
+
+            contract.withdraw((error, result) => {
+                console.log(error, result);
+                display('Passenger', 'Withdraw', [ { label: 'Withdraw: ', error: error, value: 'Successful'} ]);
+            });
+        })
     });
     
 
