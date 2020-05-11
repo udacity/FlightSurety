@@ -13,8 +13,8 @@
 
     <nav class="navbar navbar-expand-md navbar-dark bg-dark fixed-top">
         <a class="navbar-brand" href="#">FlightSurety</a>
-        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarsExampleDefault" aria-controls="navbarsExampleDefault"
-            aria-expanded="false" aria-label="Toggle navigation">
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarsExampleDefault"
+            aria-controls="navbarsExampleDefault" aria-expanded="falsepayload" aria-label="Toggle navigation">
             <span class="navbar-toggler-icon"></span>
         </button>
     </nav>
@@ -24,8 +24,21 @@
         <div id="display-wrapper" class="top-20">
         </div>
         <div class="row top-20">
-            <label class="form">Flight</label> <input type="text" id="flight-number"> <btn class="btn btn-primary" id="submit-oracle">Submit to Oracles</btn>
+            <label class="form">Flight</label>
+            <input type="text" id="flight-number">
+            <br/>
+                <label class="form">Insurance Premium</label>
+                <input class="col-4" type="number" id="InsurancePremium" value="1000000000000000000">
+                <br/>
+                    <br/>
+                        <div class="Col-12">
+                            <btn class="btn btn-primary" id="submit-oracle">Submit to Oracles</btn>
+                            <btn class="btn btn-primary" id="buy">buy</btn>
+                            <btn class="btn btn-primary" id="balance">balance</btn>
+                            <btn class="btn btn-primary" id="withdraw">withdraw</btn>
+                        </div>
         </div>
+
     </main>
 
 </body>
