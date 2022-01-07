@@ -8,9 +8,47 @@ contract FlightSuretyData {
     /********************************************************************************************/
     /*                                       DATA VARIABLES                                     */
     /********************************************************************************************/
+    uint8 private constant MINIMUM_AIRLINE_PARTICIPANT = 4;
+    uint256 private constant MAX_INSURANCE_LIMIT = 1 ether; 
+    uint256 private constant MIN_FUNDS = 10 ether;
 
     address private contractOwner;                                      // Account used to deploy contract
     bool private operational = true;                                    // Blocks all state changes throughout the contract if false
+    // contracts that could call this contract will be saved
+    mapping(address => bool) private authorizedContracts; 
+    // save the amount of votes per airlineAddress
+    mapping(address => uint256) private voteBox;
+
+    // Airline Obj, map Airline to their addresses, track num of airlines
+    struct Airline 
+    {
+        string airlineName;
+        bool isMember;
+        mapping(address => bool) votedFlag;
+    }
+    mapping(address => Airline) private airlines;
+    uint private airlineCount;
+
+    // Clients  Obj
+    struct Clients
+    {
+        bool isInsured;
+    }
+
+    // Flights obj, track flights with their IDs
+    struct Flights 
+    {
+        uint256 status;
+        uint256 departure;
+        uint256 price;
+        mapping(address => Clients) passengers;
+    }
+
+    // map flights with its ID(bytes32)
+    mapping(bytes32 => Flights) flights;
+
+    
+
 
     /********************************************************************************************/
     /*                                       EVENT DEFINITIONS                                  */
@@ -26,6 +64,8 @@ contract FlightSuretyData {
                                 ) 
                                 public 
     {
+        operational = true;
+        airlineCount = 1;
         contractOwner = msg.sender;
     }
 
@@ -56,6 +96,35 @@ contract FlightSuretyData {
         _;
     }
 
+    modifier requireIsAuthorized()
+    {
+       require(authorizedContracts[msg.sender], "Contract is not authorized");
+        _;
+    }
+
+    modifier requireIsMember(address airlineAddress ) 
+    {
+        require(airlines[airlineAddress].isMember, "Airline is not a member!");
+        _;  // All modifiers require an "_" which indicates where the function body will be added
+    }
+
+    modifier requireIsNotYetMember(address airlineAddress ) 
+    {
+        require(!airlines[airlineAddress].isMember, "Airline is already a member!");
+        _;  // All modifiers require an "_" which indicates where the function body will be added
+    }
+
+    modifier requireIsNotInsured(bytes32 flightID, address _address)
+    {
+      require(flights[flightID].passengers[_address].isInsured == false, "Address already has insurance for this flight");
+      _;
+    }
+    
+    modifier requireIsInsured(bytes32 flightID, address _address)
+    {
+      require(flights[flightID].passengers[_address].isInsured == true, "Address is not not (yet) insured!");
+      _;
+    }
     /********************************************************************************************/
     /*                                       UTILITY FUNCTIONS                                  */
     /********************************************************************************************/
@@ -71,6 +140,28 @@ contract FlightSuretyData {
                             returns(bool) 
     {
         return operational;
+    }
+
+    function isAirline
+                            (
+                                address _airline
+                            )
+                            external
+                            view
+                            returns(bool)
+    {
+        return airlines[_airline].isMember;
+    }
+                            
+
+    function authorizeCaller
+                            (
+                                address addressToAuthorize
+                            ) 
+                            external
+                            requireContractOwner
+    {
+        authorizedContracts[addressToAuthorize] = true;
     }
 
 
@@ -100,12 +191,39 @@ contract FlightSuretyData {
     */   
     function registerAirline
                             (   
+                                address airlineAddress,
+                                string airlineName
                             )
                             external
-                            pure
+                            requireIsOperational
+                            requireIsAuthorized
+                            requireIsNotYetMember(airlineAddress)
+                            returns(bool)
     {
+        // If we reached  minimum paticipant, we have to vote first to see if the new guy may join the club
+        if(airlineCount >= MINIMUM_AIRLINE_PARTICIPANT)
+            // number of votes must be at least half of total airline members
+            require(voteBox[airlineAddress].mul(3) >= airlineCount, "Vote unsuccesful");
+
+        airlines[airlineAddress] = Airline({isMember:true, airlineName:airlineName}); 
+        airlineCount.add(1);
+        return true;
     }
 
+    function vote
+                            (
+                                address voter,
+                                address candidate
+                            ) 
+                            external
+                            requireIsOperational
+                            requireIsAuthorized
+    {
+        require(airlines[voter].votedFlag[candidate] == false, "User already used their vote for this airline");
+
+        airlines[voter].votedFlag[candidate] = true;
+        voteBox[candidate] = voteBox[candidate].add(1);
+    }
 
    /**
     * @dev Buy insurance for a flight
@@ -113,11 +231,24 @@ contract FlightSuretyData {
     */   
     function buy
                             (                             
+                                bytes32 flightID
                             )
                             external
                             payable
+                            requireIsOperational
+                            requireIsNotInsured(flightID, msg.sender)
     {
+        require(msg.sender == tx.origin, "contracts can't call this functions");
+        require(msg.value > 0 , "Insufficient fund!");
 
+        if(msg.value > MAX_INSURANCE_LIMIT)
+        {
+            msg.sender.transfer(MAX_INSURANCE_LIMIT);
+        }
+        else
+        {
+            msg.sender.transfer(msg.value);
+        }
     }
 
     /**
@@ -127,7 +258,9 @@ contract FlightSuretyData {
                                 (
                                 )
                                 external
-                                pure
+                                view
+                                requireIsOperational
+                                requireIsAuthorized
     {
     }
     

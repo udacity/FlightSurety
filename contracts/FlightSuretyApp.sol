@@ -24,10 +24,16 @@ contract FlightSuretyApp {
     uint8 private constant STATUS_CODE_LATE_TECHNICAL = 40;
     uint8 private constant STATUS_CODE_LATE_OTHER = 50;
 
+    uint256 private constant AIRLINE_REGISTRATION_FEE = 10 ether;
+    uint256 private constant CUSTOMER_FEE = 1 ether;
+
     address private contractOwner;          // Account used to deploy contract
+    FlightSuretyData flightSuretyData;      // Connect to the data contract
 
     struct Flight {
         bool isRegistered;
+        string flightCode;
+        string location;
         uint8 statusCode;
         uint256 updatedTimestamp;        
         address airline;
@@ -50,7 +56,8 @@ contract FlightSuretyApp {
     modifier requireIsOperational() 
     {
          // Modify to call data contract's status
-        require(true, "Contract is currently not operational");  
+        bool status = flightSuretyData.isOperational();
+        require(status, "Contract is currently not operational");  
         _;  // All modifiers require an "_" which indicates where the function body will be added
     }
 
@@ -60,6 +67,12 @@ contract FlightSuretyApp {
     modifier requireContractOwner()
     {
         require(msg.sender == contractOwner, "Caller is not contract owner");
+        _;
+    }
+
+    modifier requreEnoughAmount(uint amount)
+    {
+        require(msg.value >= amount, "Insufficient amount!");
         _;
     }
 
@@ -73,22 +86,25 @@ contract FlightSuretyApp {
     */
     constructor
                                 (
+                                    address dataAddress
                                 ) 
                                 public 
     {
         contractOwner = msg.sender;
+        flightSuretyData = FlightSuretyData(dataAddress);
     }
 
     /********************************************************************************************/
     /*                                       UTILITY FUNCTIONS                                  */
     /********************************************************************************************/
 
+    // check if the Data is operational
     function isOperational() 
                             public 
-                            pure 
+                            view 
                             returns(bool) 
     {
-        return true;  // Modify to call data contract's status
+        return flightSuretyData.isOperational();  // Modify to call data contract's status
     }
 
     /********************************************************************************************/
@@ -102,11 +118,12 @@ contract FlightSuretyApp {
     */   
     function registerAirline
                             (   
+                                address airlineAddress
                             )
                             external
-                            pure
                             returns(bool success, uint256 votes)
     {
+        success = flightSuretyData.registerAirline(airlineAddress, "dummy");
         return (success, 0);
     }
 
@@ -138,6 +155,7 @@ contract FlightSuretyApp {
                                 internal
                                 pure
     {
+        uint256 dummy2 = timestamp;
     }
 
 
@@ -335,3 +353,18 @@ contract FlightSuretyApp {
 // endregion
 
 }   
+
+contract FlightSuretyData {
+    function isOperational() public view/// @title A title that should describe the contract/interface
+    /// @author The name of the author
+    /// @notice Explain to an end user what this does
+    /// @dev Explain to a developer any extra details
+     returns(bool); 
+    function setOperatingStatus(bool mode);
+    // function buy();
+    // function creditInsurees();
+    // function pay();
+    // function fund();
+    function registerAirline(address airlineAddress, string airlineName) external returns (bool);
+    function getFlightKey(address airline, string memory flight, uint256 timestamp);
+}

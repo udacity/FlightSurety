@@ -36,6 +36,7 @@
     "style-loader": "^0.23.1",
     "superstatic": "6.0.3",
     "truffle-hdwallet-provider": "1.0.2",
+    "web3-provider-engine": "^14.1.0",
     "webpack": "^4.41.3",
     "webpack-cli": "^3.3.10",
     "webpack-dev-server": "3.9.0",

@@ -1,9 +1,8 @@
-
 var Test = require('../config/testConfig.js');
 var BigNumber = require('bignumber.js');
 
 contract('Flight Surety Tests', async (accounts) => {
-
+  //console.log(accounts);
   var config;
   before('setup contract', async () => {
     config = await Test.Config(accounts);
@@ -18,6 +17,8 @@ contract('Flight Surety Tests', async (accounts) => {
 
     // Get operating status
     let status = await config.flightSuretyData.isOperational.call();
+    console.log('status: ', status)
+    //assert.equal(true,true,"wawawiwa");
     assert.equal(status, true, "Incorrect initial operating status value");
 
   });
@@ -81,6 +82,7 @@ contract('Flight Surety Tests', async (accounts) => {
         await config.flightSuretyApp.registerAirline(newAirline, {from: config.firstAirline});
     }
     catch(e) {
+        console.log(e);
 
     }
     let result = await config.flightSuretyData.isAirline.call(newAirline); 
