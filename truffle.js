@@ -1,6 +1,7 @@
 var HDWalletProvider = require("truffle-hdwallet-provider");
 var mnemonic = "grace orphan drink execute picnic ordinary festival rare net below rose attitude";
-var NonceTrackerSubprovider = require("web3-provider-engine/subproviders/nonce-tracker")
+var NonceTrackerSubprovider = require("web3-provider-engine/subproviders/nonce-tracker");
+
 module.exports = {
   networks: {
     development: {
