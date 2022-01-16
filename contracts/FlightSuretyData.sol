@@ -134,7 +134,6 @@ contract FlightSuretyData {
 
     /**
      *  @dev Transfers eligible payout funds to insuree
-     *
     */
     function pay
                             (
