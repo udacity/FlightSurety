@@ -49,6 +49,10 @@ contract FlightSuretyData {
         uint256 departure;
         uint256 price;
         mapping(address => Clients) passengers;
+        // since we can't iterate through maps, we have to keep track
+        // of number of addresses separately
+        address[100] passengersAddress;
+        uint256 idxPassengers;
     }
 
     // map flights with its ID(string)
@@ -174,6 +178,14 @@ contract FlightSuretyData {
         return MIN_FUNDS;
     }
 
+    function getMaxInsurance()
+        public
+        pure
+        returns(uint256)
+    {
+        return MAX_INSURANCE_LIMIT;
+    }
+
     /********************************************************************************************/
     /*                                       GETTER  FUNCTIONS                                  */
     /********************************************************************************************/
@@ -278,18 +290,27 @@ contract FlightSuretyData {
         voteBox[candidate] = voteBox[candidate].add(1);
     }
 
+    /* function getValue() external payable returns(uint256) */
+    /* { */
+    /*     return msg.value; */
+    /* } */
+
+    function getInsurance(string flightID) external payable returns(uint256)
+    {
+        return flights[flightID].passengers[msg.sender].insurance;
+    }
+
    /**
     * @dev Buy insurance for a flight
     */
     function buy
                             (
                              string flightID
-                             /* string calldata FlightID */
                             )
                             external
                             payable
-                            requireIsOperational
-                            requireIsNotInsured(flightID, msg.sender)
+                            /* requireIsOperational */
+                            /* requireIsNotInsured(flightID, msg.sender) */
                             returns (uint256)
     {
         require(msg.sender == tx.origin, "Contracts  are not allowed!");
@@ -297,10 +318,16 @@ contract FlightSuretyData {
 
         flights[flightID].passengers[msg.sender] = Clients({isInsured : true, insurance : 0, credit : 0});
 
-        if (msg.value > MAX_INSURANCE_LIMIT) {
+        flights[flightID].passengersAddress[flights[flightID].idxPassengers] = msg.sender;
+        flights[flightID].idxPassengers.add(1);
+
+        if (msg.value > MAX_INSURANCE_LIMIT)
+        {
             msg.sender.transfer(MAX_INSURANCE_LIMIT);
             flights[flightID].passengers[msg.sender].insurance = MAX_INSURANCE_LIMIT;
-        } else {
+        }
+        else
+        {
             uint256 value = msg.value;
             msg.sender.transfer(value);
             flights[flightID].passengers[msg.sender].insurance = value;

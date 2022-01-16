@@ -147,8 +147,8 @@ contract('Flight Surety Tests', async (accounts) => {
             result = await config.flightSuretyData.isAirline.call(accounts[5]);
             count =  await config.flightSuretyData.getAirlineCounts.call();
 
-            console.log("votes: " + votes.toString());
-            console.log("airlines: " + count.toString());
+            console.log("       votes: " + votes.toString());
+            console.log("       airlines: " + count.toString());
 
             await config.flightSuretyData.registerAirline.sendTransaction(accounts[5], "second airline", {from: accounts[0]});
         }
@@ -166,25 +166,23 @@ contract('Flight Surety Tests', async (accounts) => {
 
 
 
-    // it("(airline) needs at least 50% votes to register an Airline using registerAirline() after 4 airlines", async () => {
+    it("(passenger) can pay as high as 1 eth worth of insurance", async () => {
 
-    //     let funds = await config.flightSuretyData.getMinFund.call();
-    //     // ACT
-    //     try {
-    //         await config.flightSuretyData.fund({from: accounts[0], value: funds});
-    //         await config.flightSuretyApp.registerAirline.sendTransaction(accounts[3], "third airline", {from: accounts[0]});
-    //         await config.flightSuretyApp.registerAirline(accounts[4], "fourth airline", {from: accounts[0]});
-    //         await config.flightSuretyApp.registerAirline(accounts[5], "fifth airline", {from: accounts[0]});
-    //     }
-    //     catch(e) {
-    //         console.log(e);
-    //     }
-    //     let result = await config.flightSuretyData.isAirline.call(accounts[5]);
-    //     let count = await config.flightSuretyData.getAirlineCounts.call();
+        const max_insurance = await config.flightSuretyData.getMaxInsurance.call();
+        const insurance = web3.utils.toWei('2', 'ether');
+        const balanceBefore = await web3.eth.getBalance(accounts[6]);
 
-    //     // ASSERT
-    //     assert.equal(result, false, "Airline should not be able to register another airline if it hasn't provided funding");
-    //     assert.equal(count.toString(), 2, "There should only be 2 airlines together");
-    // });
+        // ACT
+        try {
+            await config.flightSuretyData.buy("MyFlight", {from: accounts[6], value: insurance, gasPrice: 0});
+        }
+        catch(e) {
+            console.log(e);
+        }
+        const balanceDiff = balanceBefore - await web3.eth.getBalance(accounts[6]);
+
+        // ASSERT
+        assert.equal(balanceDiff.toString(), max_insurance.toString() , "only max amount are transferred from passenger's account");
+    });
 
 });

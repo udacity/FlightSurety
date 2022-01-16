@@ -1,5 +1,5 @@
 var HDWalletProvider = require("truffle-hdwallet-provider");
-var mnemonic = "pull outdoor mind leg clap drift venture relax arrive charge genuine slot";
+var mnemonic = "exact mosquito process neutral miss sugar fox trust rude double toilet escape";
 var NonceTrackerSubprovider = require("web3-provider-engine/subproviders/nonce-tracker");
 
 module.exports = {
@@ -12,6 +12,7 @@ module.exports = {
       port: 8545,
       network_id: '*',
       // gas: 9999999
+      // gasLimit: 8000000
     }
   },
   compilers: {
