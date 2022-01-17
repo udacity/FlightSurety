@@ -40,3 +40,23 @@ label.form {
 input {
     margin-right: 30px;
 }
+
+.navbar-background{
+    background-color: #000;
+    opacity: 0.9;
+}
+
+.dot {
+    height: 25px;
+    width: 25px;
+    border-radius: 50%;
+    display: inline-block;
+}
+
+.red {
+    background-color: #FF1744;
+}
+
+.green {
+    background-color: #00E676;
+}
