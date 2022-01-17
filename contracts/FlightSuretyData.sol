@@ -18,10 +18,17 @@ contract FlightSuretyData {
     */
     bool private operational = true;
     /**
-    * @dev Percentage taken for registering and investing in a fund.
+    * @dev Current rate for registering and adding liquidity to a fund.
     */
     uint256 private feeFund = 0.01;
-    uint256 private feeAirline = 0.01 ether;
+    /**
+    * @dev Current registration rate for airlines.
+    */
+    uint256 private feeAirline = 1 ether;
+    /**
+    * @dev Current insurance rate.
+    */
+    uint256 private feeInsurance = 0.01;
     /**
     * @dev Airlines accessor.
     */
@@ -97,14 +104,27 @@ contract FlightSuretyData {
         * @dev Fund insured payout multiplier.
         */
         uint256 payout;
+    }
+    /**
+    * @dev Defines a liquidity provision.
+    */
+    struct Liquidity {
         /**
-        * @dev Fund investor payout rate.
+        * @dev The fund id.
+        */
+        address fund;
+        /**
+        * @dev Amount locked into liquidity.
+        */
+        uint256 amount;
+        /**
+        * @dev Locked yield rate.
         */
         uint256 rate;
         /**
-        * @dev The method of fund payout.
+        * @dev Current yield.
         */
-        address token;
+        uint256 yield;
     }
     /**
     * @dev Defines a voter.
@@ -139,6 +159,14 @@ contract FlightSuretyData {
     * @dev TODO: Document
     */
     event FundRegistered(address account, string name);
+    event FundPayout(address insured, uint256 value, uint256 );
+    /**
+    * @dev Event for liquidity registration
+    * @param { account:address } contributor
+    * @param { fund:address } fund owner address
+    * @param { rate:uint256 } yield rate
+    */
+    event LiquidityRegistered(address account, address fund, uint256 rate);
     /**
     * @dev Event for contract payout.
     */
@@ -154,8 +182,7 @@ contract FlightSuretyData {
                                 public 
     {
         contractOwner = msg.sender;
-        string memory _name = "General Fund";
-        _registerFund(contractOwner,"BSF General Fund");
+        _registerFund(contractOwner,"General Fund");
     }
 
     /********************************************************************************************/
