@@ -1,8 +1,9 @@
 pragma solidity ^0.4.25;
 
 import "../node_modules/openzeppelin-solidity/contracts/math/SafeMath.sol";
+import "./IFlightSuretyData.sol";
 
-contract FlightSuretyData {
+contract FlightSuretyData is ISuretyData {
     using SafeMath for uint256;
 
     /********************************************************************************************/
@@ -10,13 +11,9 @@ contract FlightSuretyData {
     /********************************************************************************************/
 
     /**
-    * @dev Owner of the contract.
-    */
-    address private contractOwner;
-    /**
     * @dev Operational status of the contract.
     */
-    bool private operational = true;
+    bool private _operational = true;
     /**
     * @dev Current rate for registering and adding liquidity to a fund.
     */
@@ -29,6 +26,10 @@ contract FlightSuretyData {
     * @dev Current insurance rate.
     */
     uint256 private feeInsurance = 0.01;
+
+    uint256 private ratePayout = 1.0;
+    uint256 private rateContribution = 1.0;
+
     /**
     * @dev Airlines accessor.
     */
@@ -40,23 +41,20 @@ contract FlightSuretyData {
     /**
     * @dev Insurance Funds accessor.
     */
-    mapping(address => Fund) funds;
+    mapping(address => SuretyFund) funds;
+    /**
+    * @dev Airline Registration / De-Registration.
+    */
+    mapping(string => VoteRound) rounds;
     /**
     * @dev Voter
     */
-    mapping(address => Voter) voters;
-    /**
-    * @dev Vote counts for Voters.
-    */
-    mapping(address => uint256) private votes;
+    mapping(address => Vote) votes;
     /**
     * @dev Authorized callers.
     */
-    mapping(address => uint256) callers;
-    /**
-    * @dev Multi call addresses.
-    */
-    mapping(address => bool) multi;
+    mapping(address => bool) callers;
+
     /**
     * @dev The fee types supported by the platform.
     */
@@ -70,6 +68,7 @@ contract FlightSuretyData {
     */
     struct Airline {
         bool isOperational;
+        bytes32 fund;
     }
     /**
     * @dev Defines an insurance contract.
@@ -83,94 +82,67 @@ contract FlightSuretyData {
         * @dev Insured value.
         */
         uint256 value;
-        /**
-        * @dev Fund for payout calculation & source.
-        */
-        bytes32 fund;
     }
     /**
-    * @dev Defines an insurance fund.
+    * @dev Defines a surety fund.
     */
-    struct Fund {
-        /**
-        * @dev The name of the insurance fund.
-        */
+    struct SuretyFund {
+        bytes32 id;
+        address owner;
         string name;
-        /**
-        * @dev Fund value.
-        */
-        uint256 amount;
-        /**
-        * @dev Fund insured payout multiplier.
-        */
-        uint256 payout;
+        uint256 ratePayout;
+        uint256 rateContribution;
+        bool isPublic;
     }
     /**
-    * @dev Defines a liquidity provision.
+    * @dev Defines a surety fund contribution.
     */
-    struct Liquidity {
-        /**
-        * @dev The fund id.
-        */
-        address fund;
-        /**
-        * @dev Amount locked into liquidity.
-        */
-        uint256 amount;
-        /**
-        * @dev Locked yield rate.
-        */
-        uint256 rate;
-        /**
-        * @dev Current yield.
-        */
-        uint256 yield;
+    struct SuretyFundContribution {
+        address contributor;
+
+    }
+    struct VoteRound {
+        string id;
+        bool result;
+        int256 deadline;
+        address airline;
     }
     /**
-    * @dev Defines a voter.
+    * @dev Defines a vote.
     */
-    struct Voter {
+    struct Vote {
         bool status;
     }
 
     /********************************************************************************************/
     /*                                       EVENT DEFINITIONS                                  */
     /********************************************************************************************/
-
+    /// @notice Emitted when the owner of the surety contract changes.
+    /// @param previousOwner The owner before the event was triggered.
+    /// @param newOwner The owner after the event was triggered.
+    event OwnerChanged(address indexed previousOwner, address indexed newOwner);
     /**
     * @dev Event for contract authorization.
     * @param { deployed:address }
     */
-    event ContractAuthorized(address deployed);
+    event ContractAuthorized(address indexed deployed);
     /**
     * @dev Event for contract de authorization.
     * @param { deployed:address }
     */
-    event ContractDeAuthorized(address deployed);
+    event ContractDeAuthorized(address indexed deployed);
     /**
     * @dev Event for airline registration.
     */
-    event AirlineRegistered(address account);
+    event AirlineRegistered(address indexed account);
     /**
     * @dev Event for airline status change, operational / non-operational.
     */
-    event AirlineStatusChange(address account, bool operational);
-    /**
-    * @dev TODO: Document
-    */
-    event FundRegistered(address account, string name);
-    event FundPayout(address insured, uint256 value, uint256 );
-    /**
-    * @dev Event for liquidity registration
-    * @param { account:address } contributor
-    * @param { fund:address } fund owner address
-    * @param { rate:uint256 } yield rate
-    */
-    event LiquidityRegistered(address account, address fund, uint256 rate);
+    event AirlineStatusChange(address indexed account, bool operational);
     /**
     * @dev Event for contract payout.
     */
-    event Payout(address account, uint256 value);
+    event Payout(address indexed account, uint256 value);
 
     /**
     * @dev Constructor
@@ -181,7 +153,7 @@ contract FlightSuretyData {
                                 ) 
                                 public 
     {
-        contractOwner = msg.sender;
+        _transferOwnership(msg.sender);
         _registerFund(contractOwner,"General Fund");
     }
 
@@ -197,24 +169,57 @@ contract FlightSuretyData {
     *      This is used on all state changing functions to pause the contract in 
     *      the event there is an issue that needs to be fixed
     */
-    modifier requireIsOperational() 
-    {
-        require(operational, "Contract is currently not operational");
+    modifier requireOperational() {
+        require(_operational, "Contract is currently not operational");
         _;  // All modifiers require an "_" which indicates where the function body will be added
     }
 
     /**
-    * @dev Modifier that requires the "ContractOwner" account to be the function caller
-    */
-    modifier requireContractOwner()
-    {
-        require(msg.sender == contractOner, "Caller is not contract owwner");
+     * @dev Throws if called by any account other than the owner.
+     */
+    modifier onlyOwner() {
+        require(owner() == _msgSender(), "Ownable: caller is not the owner");
         _;
     }
 
     /********************************************************************************************/
     /*                                       UTILITY FUNCTIONS                                  */
     /********************************************************************************************/
+
+    /**
+     * @dev Returns the address of the current owner.
+     */
+    function owner() external view returns (address) {
+        return _owner;
+    }
+    /**
+     * @dev Leaves the contract without owner. It will not be possible to call
+     * `onlyOwner` functions anymore. Can only be called by the current owner.
+     *
+     * NOTE: Renouncing ownership will leave the contract without an owner,
+     * thereby removing any functionality that is only available to the owner.
+     */
+    function renounceOwnership() external onlyOwner {
+        _transferOwnership(address(0));
+    }
+    /**
+     * @dev Transfers ownership of the contract to a new account (`newOwner`).
+     * Can only be called by the current owner.
+     */
+    function transferOwnership(address newOwner) external  onlyOwner {
+        require(newOwner != address(0), "Ownable: new owner is the zero address");
+        _transferOwnership(newOwner);
+    }
+
+    /**
+     * @dev Transfers ownership of the contract to a new account (`newOwner`).
+     * Internal function without access restriction.
+     */
+    function _transferOwnership(address newOwner) internal virtual {
+        address oldOwner = _owner;
+        _owner = newOwner;
+        emit OwnershipTransferred(oldOwner, newOwner);
+    }
 
     /**
     * @dev Calculates the fee for specified fee type.
@@ -242,14 +247,14 @@ contract FlightSuretyData {
     /**
     * @dev Get the status of a multi-caller.
     */
-    function getMultiCallStatus(address account) external requireIsOperational returns(uint256) {
+    function getMultiCallStatus(address account) external requireOperational returns(uint256) {
         return multi[account];
     }
     /**
     * @dev Get operating status of contract
     * @return A bool that is the current operating status
     */      
-    function isOperational() public view returns(bool) {
+    function operational() external view returns(bool) {
         return operational;
     }
     /**
@@ -257,7 +262,7 @@ contract FlightSuretyData {
     *
     * When operational mode is disabled, all write transactions except for this one will fail
     */    
-    function setOperatingStatus(bool mode) external requireContractOwner {
+    function setOperatingStatus(bool mode) external onlyOwner {
         operational = mode;
     }
     /**
@@ -291,7 +296,7 @@ contract FlightSuretyData {
     /**
     * @dev Registers an account as an airline.
     */
-    function _registerAirline(address account) private requireIsOperational {
+    function _registerAirline(address account) private requireOperational {
         airlines[account] = Airline({
             isOperational: true
         });
@@ -319,11 +324,14 @@ contract FlightSuretyData {
     * @param Fund Name.
     * @param Fund Payout Rate.
     */
-    function _registerFund(address account, string memory name, uint256 payout) private requireIsOperational {
+    function _registerFund(address account, string memory name) private requireOperational {
         funds[account] = Fund({
+            owner: account,
             name: name,
             amount: msg.value,
-            payout: payout
+            ratePayout: _payout,
+            rateContribution: _contribution
+
         });
         emit FundRegistered(account, name);
     }
@@ -348,7 +356,7 @@ contract FlightSuretyData {
     /**
     * @dev Credit insured contracts.
     */
-    function credit(address fund, address insured, uint256 value) external pure requireIsOperational {
+    function credit(address fund, address insured, uint256 value) external pure requireOperational {
         uint256 payout = contracts[airline].value.mul(1.5);
 
         require(contracts[airline].passenger == insured, "Insure was not an insured passenger.");
@@ -358,7 +366,7 @@ contract FlightSuretyData {
         payouts[insured] = payout;
     }
 
-    function withdraw(address insured) external requireIsOperational returns(uint256){
+    function withdraw(address insured) external requireOperational returns(uint256){
         require(msg.sender == insured, "Only insured party may withdraw an authorized payout.");
         uint256 value = payouts[insured];
         return value;
@@ -371,11 +379,12 @@ contract FlightSuretyData {
     function fund
                             (   
                             )
-                            public
+                            external
                             payable
     {
         funds[contractOwner].amount += msg.value;
     }
+    function _fund(address seed, string memory name, )
     /********************************************************************************************/
     /*                                     END Insurance FUNCTIONS                             */
     /********************************************************************************************/

@@ -5,6 +5,7 @@ pragma solidity ^0.4.25;
 // More info: https://www.nccgroup.trust/us/about-us/newsroom-and-events/blog/2018/november/smart-contract-insecurity-bad-arithmetic/
 
 import "../node_modules/openzeppelin-solidity/contracts/math/SafeMath.sol";
+import "./FlightSuretyData.sol";
 
 /************************************************** */
 /* FlightSurety Smart Contract                      */
@@ -16,15 +17,34 @@ contract FlightSuretyApp {
     /*                                       DATA VARIABLES                                     */
     /********************************************************************************************/
 
-    // Flight status codes
+    /**
+    * @dev Unknown Status
+    */
     uint8 private constant STATUS_CODE_UNKNOWN = 0;
+    /**
+    * @dev On Time Status
+    */
     uint8 private constant STATUS_CODE_ON_TIME = 10;
+    /**
+    * @dev Late - Airline Status
+    */
     uint8 private constant STATUS_CODE_LATE_AIRLINE = 20;
+    /**
+    * @dev Late - Weather Status
+    */
     uint8 private constant STATUS_CODE_LATE_WEATHER = 30;
+    /**
+    * @dev Late - Technical Status
+    */
     uint8 private constant STATUS_CODE_LATE_TECHNICAL = 40;
+    /**
+    * @dev Late - Other Status
+    */
     uint8 private constant STATUS_CODE_LATE_OTHER = 50;
-
-    address private contractOwner;          // Account used to deploy contract
+    /**
+    * @dev Account used to deploy contract
+    */
+    address private contractOwner;
 
     struct Flight {
         bool isRegistered;
@@ -34,6 +54,10 @@ contract FlightSuretyApp {
     }
     mapping(bytes32 => Flight) private flights;
 
+    /**
+    * @dev
+    */
+    FlightSuretyData private data;
  
     /********************************************************************************************/
     /*                                       FUNCTION MODIFIERS                                 */
@@ -98,7 +122,8 @@ contract FlightSuretyApp {
   
    /**
     * @dev Add an airline to the registration queue
-    *
+    * @return { success:bool }
+    * @return { votes:uint256 }
     */   
     function registerAirline
                             (   
@@ -113,10 +138,12 @@ contract FlightSuretyApp {
 
    /**
     * @dev Register a future flight for insuring.
-    *
     */  
     function registerFlight
                                 (
+                                    address airline,
+                                    string memory flight,
+                                    uint8 status
                                 )
                                 external
                                 pure
@@ -126,7 +153,6 @@ contract FlightSuretyApp {
     
    /**
     * @dev Called after oracle has updated flight status
-    *
     */  
     function processFlightStatus
                                 (
@@ -160,10 +186,7 @@ contract FlightSuretyApp {
                                             });
 
         emit OracleRequest(index, airline, flight, timestamp);
-    } 
-
-
-// region ORACLE MANAGEMENT
+    }
 
     // Incremented to add pseudo-randomness at various points
     uint8 private nonce = 0;    
@@ -331,7 +354,4 @@ contract FlightSuretyApp {
 
         return random;
     }
-
-// endregion
-
 }   

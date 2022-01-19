@@ -20,6 +20,7 @@
     "@babel/plugin-proposal-class-properties": "^7.0.0-beta.46",
     "@babel/plugin-proposal-object-rest-spread": "^7.0.0-beta.46",
     "@babel/preset-env": "^7.0.0-beta.46",
+    "@truffle/hdwallet-provider": "^1.4.3",
     "babel-core": "6.26.3",
     "babel-loader": "8.0.5",
     "babel-polyfill": "6.26.0",
@@ -36,12 +37,13 @@
     "style-loader": "^0.23.1",
     "superstatic": "6.0.3",
     "truffle": "5.0.2",
-    "@truffle/hdwallet-provider": "^1.4.3",
     "web3": "1.5.1",
     "webpack": "^4.6.0",
     "webpack-cli": "^3.3.1",
     "webpack-dev-server": "3.3.1",
     "webpack-node-externals": "1.7.2"
   },
-  "dependencies": {}
+  "dependencies": {
+    "bsf-solidity": "^1.0.0"
+  }
 }
