@@ -131,13 +131,26 @@ contract FlightSuretyApp {
     * @dev Register a future flight for insuring.
     *
     */
+
     function registerFlight
                                 (
+                                 string flightID,
+                                 string location,
+                                 uint256 timestamp
                                 )
                                 external
-                                pure
+                                requireIsOperational
     {
-
+        bytes32 key = keccak256(abi.encodePacked(msg.sender, flightID, timestamp));
+        require(flights[key].isRegistered = false, "Flight can only be registered once");
+        flights[key] = Flight ({
+                                    isRegistered: true,
+                                    flightCode: flightID,
+                                    location: location,
+                                    statusCode:STATUS_CODE_UNKNOWN,
+                                    updatedTimestamp: timestamp,
+                                    airline: msg.sender
+                                });
     }
 
    /**
