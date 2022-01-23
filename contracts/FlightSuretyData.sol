@@ -237,6 +237,16 @@ contract FlightSuretyData {
     /********************************************************************************************/
     /*                                     SMART CONTRACT FUNCTIONS                             */
     /********************************************************************************************/
+    function getCredit (string flightID, address passenger ) returns (uint256)
+    {
+        return flights[flightID].passengers[passenger].credit;
+    }
+
+    function getInsurance (string flightID, address passenger ) returns (uint256)
+    {
+        return flights[flightID].passengers[passenger].insurance;
+    }
+
     function getVotes (address airlineAddress) returns (uint256)
     {
         return voteBox[airlineAddress];
@@ -285,16 +295,6 @@ contract FlightSuretyData {
         voteBox[candidate] = voteBox[candidate].add(1);
     }
 
-    /* function getValue() external payable returns(uint256) */
-    /* { */
-    /*     return msg.value; */
-    /* } */
-
-    function getInsurance(string flightID) external payable returns(uint256)
-    {
-        return flights[flightID].passengers[msg.sender].insurance;
-    }
-
    /**
     * @dev Buy insurance for a flight
     */
@@ -314,16 +314,19 @@ contract FlightSuretyData {
         flights[flightID].passengers[msg.sender] = Clients({isInsured : true, insurance : 0, credit : 0});
 
         flights[flightID].passengersAddress[flights[flightID].idxPassengers] = msg.sender;
-        flights[flightID].idxPassengers.add(1);
+        flights[flightID].idxPassengers++;
 
+        // CHECK & EFFECT
         if (msg.value > MAX_INSURANCE_LIMIT)
         {
+            //TRANSFER & UPDATE
             msg.sender.transfer(MAX_INSURANCE_LIMIT);
             flights[flightID].passengers[msg.sender].insurance = MAX_INSURANCE_LIMIT;
         }
         else
         {
             uint256 value = msg.value;
+            //TRANSFER & UPDATE
             msg.sender.transfer(value);
             flights[flightID].passengers[msg.sender].insurance = value;
         }
@@ -335,12 +338,29 @@ contract FlightSuretyData {
     */
     function creditInsurees
                                 (
+                                  string flightID,
+                                  address passenger
                                 )
                                 external
-                                view
                                 requireIsOperational
                                 requireIsAuthorized
+
     {
+        // CHECK
+        require(flights[flightID].idxPassengers > 0, "There is no passengers registered");
+        for(uint256 i = 0; i < flights[flightID].idxPassengers; i++)
+        {
+            // CHECK
+            // get the current data
+            uint256 currCredit = flights[flightID].passengers[passenger].credit;
+            uint256 currInsurance = flights[flightID].passengers[passenger].insurance;
+
+            // EFFECT
+            flights[flightID].passengers[passenger].insurance = 0;
+
+            //TRANSFER
+            flights[flightID].passengers[passenger].credit = currCredit + currInsurance + currInsurance.div(2);
+        }
     }
 
 
