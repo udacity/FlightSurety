@@ -67,6 +67,27 @@ contract('Flight Surety Tests', async (accounts) => {
 
     });
 
+    it('(airline) Owner is the first airline', async () => {
+
+        let result = false;
+        let count = 0;
+        // ACT
+        try {
+            count = await config.flightSuretyData.getAirlineCounts.call();
+            result = await config.flightSuretyData.isAirline.call(accounts[0]);
+        }
+        catch(e) {
+            // console.log(e);
+        }
+
+
+        // ASSERT
+        assert.equal(result, true, "Owner should be the first 'Airline' ");
+        assert.equal(count, 1, "Owner should be the only 'Airline' available");
+
+    });
+
+
     it('(airline) cannot register an Airline using registerAirline() if it is not funded', async () => {
 
         let newAirline = accounts[2];
@@ -185,4 +206,22 @@ contract('Flight Surety Tests', async (accounts) => {
         assert.equal(balanceDiff.toString(), max_insurance.toString() , "only max amount are transferred from passenger's account");
     });
 
+    it("(passenger) can pay as high as 1 eth worth of insurance", async () => {
+
+        const max_insurance = await config.flightSuretyData.getMaxInsurance.call();
+        const insurance = web3.utils.toWei('2', 'ether');
+        const balanceBefore = await web3.eth.getBalance(accounts[6]);
+
+        // ACT
+        try {
+            await config.flightSuretyData.buy("MyFlight", {from: accounts[6], value: insurance, gasPrice: 0});
+        }
+        catch(e) {
+            console.log(e);
+        }
+        const balanceDiff = balanceBefore - await web3.eth.getBalance(accounts[6]);
+
+        // ASSERT
+        assert.equal(balanceDiff.toString(), max_insurance.toString() , "only max amount are transferred from passenger's account");
+    });
 });
