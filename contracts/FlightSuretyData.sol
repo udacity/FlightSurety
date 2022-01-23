@@ -191,9 +191,7 @@ contract FlightSuretyData {
                             view
                             returns(bool)
     {
-        /* return airlines[airlineAddress].isMember; */
         return airlines[airlineAddress].isMember;
-        /* return true; */
     }
 
 
@@ -213,6 +211,7 @@ contract FlightSuretyData {
                             address caller
                             )
                             external
+                            view
                             requireContractOwner
                             returns(bool)
     {
@@ -237,17 +236,17 @@ contract FlightSuretyData {
     /********************************************************************************************/
     /*                                     SMART CONTRACT FUNCTIONS                             */
     /********************************************************************************************/
-    function getCredit (string flightID, address passenger ) returns (uint256)
+    function getCredit (string flightID, address passenger ) public view returns (uint256)
     {
         return flights[flightID].passengers[passenger].credit;
     }
 
-    function getInsurance (string flightID, address passenger ) returns (uint256)
+    function getInsurance (string flightID, address passenger ) public view returns (uint256)
     {
         return flights[flightID].passengers[passenger].insurance;
     }
 
-    function getVotes (address airlineAddress) returns (uint256)
+    function getVotes (address airlineAddress) public view returns (uint256)
     {
         return voteBox[airlineAddress];
     }
@@ -304,8 +303,8 @@ contract FlightSuretyData {
                             )
                             external
                             payable
-                            /* requireIsOperational */
-                            /* requireIsNotInsured(flightID, msg.sender) */
+                            requireIsOperational
+                            requireIsNotInsured(flightID, msg.sender)
                             returns (uint256)
     {
         require(msg.sender == tx.origin, "Contracts  are not allowed!");
@@ -327,7 +326,7 @@ contract FlightSuretyData {
         {
             uint256 value = msg.value;
             //TRANSFER & UPDATE
-            msg.sender.transfer(value);
+            address(this).transfer(value);
             flights[flightID].passengers[msg.sender].insurance = value;
         }
         return flights[flightID].passengers[msg.sender].insurance;
@@ -370,10 +369,24 @@ contract FlightSuretyData {
     */
     function pay
                             (
+                             string flightID
                             )
                             external
-                            pure
+                            payable
+                            requireIsOperational
+                            requireIsInsured(flightID, msg.sender)
     {
+        // CHECK & EFFECT
+        require(msg.sender == tx.origin, "contracts are not allowed");
+        require(flights[flightID].passengers[msg.sender].credit > 0, "No credit available");
+        require(address(this).balance > credit, "contract does not have enough funds");
+
+        // EFFECT
+        uint256 credit = flights[flightID].passengers[msg.sender].credit;
+        flights[flightID].passengers[msg.sender].credit = 0;
+
+        //TRANSFER
+        msg.sender.transfer(credit);
     }
 
    /**
@@ -387,7 +400,6 @@ contract FlightSuretyData {
                             public
                             payable
                             requireIsOperational
-
     {
         uint256 currentFunds = airlines[msg.sender].fundAmounts;
         airlines[msg.sender].fundAmounts = currentFunds.add(msg.value);

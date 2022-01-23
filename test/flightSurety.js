@@ -2,16 +2,22 @@ var Test = require('../config/testConfig.js');
 var BigNumber = require('bignumber.js');
 
 let testPassenger;
-let testFlightID;
-let testCity;
+
+let testFirstFlightID;
+let testSecondFlightID;
+let testFirstCity;
+let testSecondCity;
 
 contract('Flight Surety Tests', async (accounts) => {
   //console.log(accounts);
   var config;
   before('setup contract', async () => {
     testPassenger = accounts[10];
-    testFlightID = "KUL123";
-    testCity = "Kuala Lumpur";
+
+    testFirstFlightID = "KUL123";
+    testFirstCity = "Kuala Lumpur";
+    testSecondFlightID = "LHR456";
+    testSecondCity = "Heathrow";
 
     config = await Test.Config(accounts);
     await config.flightSuretyData.authorizeCaller(config.flightSuretyApp.address);
@@ -21,7 +27,7 @@ contract('Flight Surety Tests', async (accounts) => {
   /* Operations and Settings                                                              */
   /****************************************************************************************/
 
-    it(` (Contract) Check App-Data connection`, async function () {
+    it(` (contract) Check App-Data connection`, async function () {
 
         let status = await config.flightSuretyData.checkIfAuthorized.call(config.flightSuretyApp.address);
         assert.equal(status, true, "App is authorized to call Data");
@@ -94,7 +100,6 @@ contract('Flight Surety Tests', async (accounts) => {
         catch(e) {
             // console.log(e);
         }
-
 
         // ASSERT
         assert.equal(result, true, "Owner should be the first 'Airline' ");
@@ -171,6 +176,7 @@ contract('Flight Surety Tests', async (accounts) => {
         let votes;
         let result;
         let count;
+
         try {
             await config.flightSuretyData.fund({from: accounts[2], value: funds});
             await config.flightSuretyData.fund({from: accounts[3], value: funds});
@@ -182,9 +188,6 @@ contract('Flight Surety Tests', async (accounts) => {
             votes =  await config.flightSuretyData.getVotes.call(accounts[5]);
             result = await config.flightSuretyData.isAirline.call(accounts[5]);
             count =  await config.flightSuretyData.getAirlineCounts.call();
-
-            console.log("       votes: " + votes.toString());
-            console.log("       airlines: " + count.toString());
 
             await config.flightSuretyData.registerAirline.sendTransaction(accounts[5], "second airline", {from: accounts[0]});
         }
@@ -201,10 +204,11 @@ contract('Flight Surety Tests', async (accounts) => {
     });
 
 
-    it("(airline) can register new flight", async () => {
+    it("(airline) can register new flights", async () => {
         // ACT
         try {
-            await config.flightSuretyApp.registerFlight(testFlightID,testCity , Math.floor(Date.now() / 1000), {from: config.firstAirline});
+            await config.flightSuretyApp.registerFlight(testFirstFlightID,testFirstCity , Math.floor(Date.now() / 1000), {from: config.firstAirline});
+            await config.flightSuretyApp.registerFlight(testSecondFlightID,testSecondCity , Math.floor(Date.now() / 1000), {from: config.firstAirline});
         }
         catch(e) {
             console.log(e);
@@ -215,13 +219,30 @@ contract('Flight Surety Tests', async (accounts) => {
         //ARRANGE
         const max_insurance = await config.flightSuretyData.MAX_INSURANCE_LIMIT.call();
         const insurance = web3.utils.toWei('2', 'ether');
-        // const balanceBefore = await web3.eth.getBalance(accounts[6]);
         const balanceBefore = await web3.eth.getBalance(testPassenger);
-
 
         // ACT
         try {
-            await config.flightSuretyData.buy(testFlightID, {from: testPassenger, value: insurance, gasPrice: 0});
+            await config.flightSuretyData.buy(testFirstFlightID, {from: testPassenger, value: insurance, gasPrice: 0});
+        }
+        catch(e) {
+            console.log(e);
+        }
+        const balanceDiff = balanceBefore - await web3.eth.getBalance(testPassenger);
+
+        // ASSERT
+        assert.equal(balanceDiff.toString(), max_insurance.toString() , "only max amount are transferred from passenger's account");
+    });
+
+    it("(passenger) can buy multiple insurance from different flights", async () => {
+        //ARRANGE
+        const max_insurance = await config.flightSuretyData.MAX_INSURANCE_LIMIT.call();
+        const insurance = web3.utils.toWei('2', 'ether');
+        const balanceBefore = await web3.eth.getBalance(testPassenger);
+
+        // ACT
+        try {
+            await config.flightSuretyData.buy(testSecondFlightID, {from: testPassenger, value: insurance, gasPrice: 0});
         }
         catch(e) {
             console.log(e);
@@ -238,9 +259,9 @@ contract('Flight Surety Tests', async (accounts) => {
 
         // ACT
         try {
-            insurance = await config.flightSuretyData.getInsurance.call(testFlightID, testPassenger);
-            await config.flightSuretyData.creditInsurees(testFlightID, testPassenger);
-            credit = await config.flightSuretyData.getCredit.call(testFlightID, testPassenger);
+            insurance = await config.flightSuretyData.getInsurance.call(testFirstFlightID, testPassenger);
+            await config.flightSuretyData.creditInsurees(testFirstFlightID, testPassenger);
+            credit = await config.flightSuretyData.getCredit.call(testFirstFlightID, testPassenger);
 
         }
         catch(e) {
@@ -252,19 +273,29 @@ contract('Flight Surety Tests', async (accounts) => {
 
     it("(passenger) can withdraw the credit if the flight is late", async () => {
         //ARRANGE
-        // ACT
-        let insurance, credit;
-        try {
-            insurance = await config.flightSuretyData.getInsurance.call(testFlightID, testPassenger);
-            await config.flightSuretyData.creditInsurees(testFlightID, testPassenger);
-            credit = await config.flightSuretyData.getCredit.call(testFlightID, testPassenger);
+        let paidAmount;
+        let initialCredit;
+        let finalCredit;
+        let initialBalance;
+        let finalBalance = 999; // use random number just to test
+        let finalInsurance = 999 ; // use random number just to test
 
+        // ACT
+        try {
+             initialCredit = await config.flightSuretyData.getCredit.call(testFirstFlightID, testPassenger);
+             initialBalance = await web3.eth.getBalance(testPassenger);
+
+             await config.flightSuretyData.pay(testFirstFlightID, {from: testPassenger});
+
+             finalBalance = await web3.eth.getBalance(testPassenger);
+             finalCredit = await config.flightSuretyData.getCredit.call(testFirstFlightID, testPassenger);
+             finalInsurance = await config.flightSuretyData.getInsurance.call(testFirstFlightID, testPassenger);
         }
         catch(e) {
             console.log(e);
         }
 
-        assert.equal(credit, insurance*1.5, "passenger would be payed 1.5x the insurance they paid");
+        assert.equal(finalInsurance.toString(), 0, "final insurance should be 0");
     });
 
 });
