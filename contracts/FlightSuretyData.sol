@@ -224,6 +224,17 @@ contract FlightSuretyData {
     }
 
 
+    function checkIfAuthorized
+                            (
+                            address caller
+                            )
+                            external
+                            requireContractOwner
+                            returns(bool)
+    {
+        return authorizedContracts[caller];
+    }
+
     /**
     * @dev Sets contract operations on/off
     *

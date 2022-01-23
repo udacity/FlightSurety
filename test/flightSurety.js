@@ -13,6 +13,13 @@ contract('Flight Surety Tests', async (accounts) => {
   /* Operations and Settings                                                              */
   /****************************************************************************************/
 
+    it(`Check App-Data connection`, async function () {
+
+        let status = await config.flightSuretyData.checkIfAuthorized.call(config.flightSuretyApp.address);
+        assert.equal(status, true, "App is authorized to call Data");
+
+    });
+
     it(`(multiparty) has correct initial isOperational() value`, async function () {
         // Get operating status
         let status = await config.flightSuretyData.isOperational.call();
