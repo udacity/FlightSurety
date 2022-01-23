@@ -1,10 +1,18 @@
 var Test = require('../config/testConfig.js');
 var BigNumber = require('bignumber.js');
 
+let testPassenger;
+let testFlightID;
+let testCity;
+
 contract('Flight Surety Tests', async (accounts) => {
   //console.log(accounts);
   var config;
   before('setup contract', async () => {
+    testPassenger = accounts[10];
+    testFlightID = "KUL123"
+    testCity = "Kuala Lumpur"
+
     config = await Test.Config(accounts);
     await config.flightSuretyData.authorizeCaller(config.flightSuretyApp.address);
   });
@@ -117,7 +125,7 @@ contract('Flight Surety Tests', async (accounts) => {
 
     it("(airline) can register up to 4 Airlines using registerAirline() if it is funded ", async () => {
 
-        let funds = await config.flightSuretyData.getMinFund.call();
+        let funds = await config.flightSuretyData.MIN_FUNDS.call();
         // ACT
         try {
             await config.flightSuretyData.fund({from: accounts[0], value: funds});
@@ -139,7 +147,7 @@ contract('Flight Surety Tests', async (accounts) => {
 
     it("(airline) can't register an Airline since at least 50% votes needed after 5 airlines upwards", async () => {
 
-        let funds = await config.flightSuretyData.getMinFund.call();
+        let funds = await config.flightSuretyData.MIN_FUNDS.call();
         // ACT
         try {
             await config.flightSuretyData.registerAirline.sendTransaction(accounts[5], "second airline", {from: accounts[0]});
@@ -158,7 +166,7 @@ contract('Flight Surety Tests', async (accounts) => {
 
     it("(airline) after at least 50% votes to register an Airline using registerAirline() on 5 airlines upwards", async () => {
 
-        let funds = await config.flightSuretyData.getMinFund.call();
+        let funds = await config.flightSuretyData.MIN_FUNDS.call();
         // ACT
         let votes;
         let result;
@@ -203,15 +211,15 @@ contract('Flight Surety Tests', async (accounts) => {
         }
     });
 
-
     it("(passenger) can pay as high as 1 eth worth of insurance", async () => {
-        const max_insurance = await config.flightSuretyData.getMaxInsurance.call();
+        //ARRANGE
+        const max_insurance = await config.flightSuretyData.MAX_INSURANCE_LIMIT.call();
         const insurance = web3.utils.toWei('2', 'ether');
         const balanceBefore = await web3.eth.getBalance(accounts[6]);
 
         // ACT
         try {
-            await config.flightSuretyData.buy("MyFlight", {from: accounts[6], value: insurance, gasPrice: 0});
+            await config.flightSuretyData.buy(testFlightID, {from: accounts[6], value: insurance, gasPrice: 0});
         }
         catch(e) {
             console.log(e);
@@ -222,5 +230,17 @@ contract('Flight Surety Tests', async (accounts) => {
         assert.equal(balanceDiff.toString(), max_insurance.toString() , "only max amount are transferred from passenger's account");
     });
 
+    // it("(passenger) receives 1.5x credit if flight is delayed", async () => {
+    //     //ARRANGE
+    //     let price = await config.flightSuretyData.MAX_INSURANCE_LIMIT.call();
+    //     await creditInsurees()
+    //     let creditToPay = await config.flightSuretyData.getCreditToPay.call({from: testPassenger});
 
+    //     // ACT
+    //     try {
+    //     }
+    //     catch(e) {
+    //         console.log(e);
+    //     }
+    // });
 });

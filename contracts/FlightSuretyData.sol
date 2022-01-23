@@ -9,9 +9,9 @@ contract FlightSuretyData {
     /*                                       DATA VARIABLES                                     */
     /********************************************************************************************/
     uint8 private constant MINIMUM_AIRLINE_PARTICIPANT = 4;
-    uint256 private constant MAX_INSURANCE_LIMIT = 1 ether;
-    /* uint256 private constant MIN_FUNDS = 10 ether; */
-    uint256 private constant MIN_FUNDS = 0.1 ether;
+    uint256 public constant MAX_INSURANCE_LIMIT = 1 ether;
+    /* uint256 public constant MIN_FUNDS = 10 ether; */
+    uint256 public constant MIN_FUNDS = 0.1 ether;
 
 
     address private contractOwner;                                      // Account used to deploy contract
@@ -168,22 +168,6 @@ contract FlightSuretyData {
                             returns(bool)
     {
         return operational;
-    }
-
-    function getMinFund()
-                            public
-                            pure
-                            returns(uint256)
-    {
-        return MIN_FUNDS;
-    }
-
-    function getMaxInsurance()
-        public
-        pure
-        returns(uint256)
-    {
-        return MAX_INSURANCE_LIMIT;
     }
 
     /********************************************************************************************/
