@@ -142,7 +142,7 @@ contract FlightSuretyApp {
                                 requireIsOperational
     {
         bytes32 key = keccak256(abi.encodePacked(msg.sender, flightID, timestamp));
-        require(flights[key].isRegistered = false, "Flight can only be registered once");
+        require(flights[key].isRegistered == false, "Flight can only be registered once");
         flights[key] = Flight ({
                                     isRegistered: true,
                                     flightCode: flightID,

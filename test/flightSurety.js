@@ -13,7 +13,7 @@ contract('Flight Surety Tests', async (accounts) => {
   /* Operations and Settings                                                              */
   /****************************************************************************************/
 
-    it(`Check App-Data connection`, async function () {
+    it(` (Contract) Check App-Data connection`, async function () {
 
         let status = await config.flightSuretyData.checkIfAuthorized.call(config.flightSuretyApp.address);
         assert.equal(status, true, "App is authorized to call Data");
@@ -137,7 +137,7 @@ contract('Flight Surety Tests', async (accounts) => {
         assert.equal(count.toString(), 4, "There should only be 4 airlines together");
     });
 
-    it("(airline) needs at least 50% votes to register an Airline using registerAirline() on 5 airlines upwards", async () => {
+    it("(airline) can't register an Airline since at least 50% votes needed after 5 airlines upwards", async () => {
 
         let funds = await config.flightSuretyData.getMinFund.call();
         // ACT
@@ -193,9 +193,18 @@ contract('Flight Surety Tests', async (accounts) => {
     });
 
 
+    it("(airline) can register new flight", async () => {
+        // ACT
+        try {
+            await config.flightSuretyApp.registerFlight("KUL123", "Kuala Lumpur", Math.floor(Date.now() / 1000), {from: config.firstAirline});
+        }
+        catch(e) {
+            console.log(e);
+        }
+    });
+
 
     it("(passenger) can pay as high as 1 eth worth of insurance", async () => {
-
         const max_insurance = await config.flightSuretyData.getMaxInsurance.call();
         const insurance = web3.utils.toWei('2', 'ether');
         const balanceBefore = await web3.eth.getBalance(accounts[6]);
@@ -213,22 +222,5 @@ contract('Flight Surety Tests', async (accounts) => {
         assert.equal(balanceDiff.toString(), max_insurance.toString() , "only max amount are transferred from passenger's account");
     });
 
-    it("(passenger) can pay as high as 1 eth worth of insurance", async () => {
 
-        const max_insurance = await config.flightSuretyData.getMaxInsurance.call();
-        const insurance = web3.utils.toWei('2', 'ether');
-        const balanceBefore = await web3.eth.getBalance(accounts[6]);
-
-        // ACT
-        try {
-            await config.flightSuretyData.buy("MyFlight", {from: accounts[6], value: insurance, gasPrice: 0});
-        }
-        catch(e) {
-            console.log(e);
-        }
-        const balanceDiff = balanceBefore - await web3.eth.getBalance(accounts[6]);
-
-        // ASSERT
-        assert.equal(balanceDiff.toString(), max_insurance.toString() , "only max amount are transferred from passenger's account");
-    });
 });
