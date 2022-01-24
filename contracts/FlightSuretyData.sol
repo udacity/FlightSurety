@@ -17,43 +17,43 @@ contract FlightSuretyData is ISuretyData {
     /**
     * @dev Current rate for registering and adding liquidity to a fund.
     */
-    uint256 private feeFund = 0.01;
+    uint256 private _feeFund = 0.01;
     /**
     * @dev Current registration rate for airlines.
     */
-    uint256 private feeAirline = 1 ether;
+    uint256 private _feeAirline = 1 ether;
     /**
     * @dev Current insurance rate.
     */
-    uint256 private feeInsurance = 0.01;
+    uint256 private _feeInsurance = 0.01;
 
-    uint256 private ratePayout = 1.0;
-    uint256 private rateContribution = 1.0;
+    uint256 private _ratePayout = 1.0;
+    uint256 private _rateContribution = 1.0;
 
     /**
     * @dev Airlines accessor.
     */
-    mapping(address => Airline) airlines;
+    mapping(address => Airline) _airlines;
     /**
     * @dev Insurance Contracts accessor.
     */
-    mapping(address => Insurance) contracts;
+    mapping(address => Insurance) _contracts;
     /**
     * @dev Insurance Funds accessor.
     */
-    mapping(address => SuretyFund) funds;
+    mapping(address => SuretyFund) _funds;
     /**
     * @dev Airline Registration / De-Registration.
     */
-    mapping(string => VoteRound) rounds;
+    mapping(string => VoteRound) _rounds;
     /**
     * @dev Voter
     */
-    mapping(address => Vote) votes;
+    mapping(address => Vote) _votes;
     /**
-    * @dev Authorized callers.
+    * @dev Authorized contract addresses.
     */
-    mapping(address => bool) callers;
+    mapping(address => bool) _authorized;
 
     /**
     * @dev The fee types supported by the platform.
@@ -185,7 +185,6 @@ contract FlightSuretyData is ISuretyData {
     /********************************************************************************************/
     /*                                       UTILITY FUNCTIONS                                  */
     /********************************************************************************************/
-
     /**
      * @dev Returns the address of the current owner.
      */
@@ -240,14 +239,14 @@ contract FlightSuretyData is ISuretyData {
     * @dev Sets the status of an 'account' as a multi-caller.
     * @dev Multi-call is mainly for airlines **
     */
-    function _setMultiCall(address account, bool status) private {
+    function _authorize(address account, bool status) private {
         require(multi[account].status != status, "Account status already in this status.");
         multi[account] = status;
     }
     /**
-    * @dev Get the status of a multi-caller.
+    * @dev Get the status of an authorized contract.
     */
-    function getMultiCallStatus(address account) external requireOperational returns(uint256) {
+    function getAuthorization(address account) external requireOperational returns(uint256) {
         return multi[account];
     }
     /**
@@ -322,18 +321,26 @@ contract FlightSuretyData is ISuretyData {
     * @dev Registers a fund.
     * @param Fund Owner.
     * @param Fund Name.
-    * @param Fund Payout Rate.
+    * @param Amount to contribute.
+    * @param Are fund contributions public.
     */
-    function _registerFund(address account, string memory name) private requireOperational {
+    function _registerFund(address account, string memory name, uint256 amount, bool isPublic) private {
         funds[account] = Fund({
             owner: account,
             name: name,
-            amount: msg.value,
+            amount: amount,
             ratePayout: _payout,
-            rateContribution: _contribution
-
+            rateContribution: _contribution,
+            isPublic: isPublic
         });
         emit FundRegistered(account, name);
+    }
+
+    function registerFund(string memory name, bool isPublic) external requireOperational {
+        uint256 fee = _calculateFee(FeeType.Fund, msg.value);
+        uint256 amount = msg.value - fee;
+        require(amount > 0, "Appropriate fee not supplied.");
+        _registerFund(msg.sender, name, amount ,isPublic);
     }
 
     /********************************************************************************************/
@@ -353,17 +360,18 @@ contract FlightSuretyData is ISuretyData {
 
     }
 
+    function _credit(address fund, address insured, uint256 value) private {
+        uint256 payout = funds[insured].value.mul(_);
+        payouts[insured] = payout;
+    }
+
     /**
     * @dev Credit insured contracts.
     */
     function credit(address fund, address insured, uint256 value) external pure requireOperational {
-        uint256 payout = contracts[airline].value.mul(1.5);
-
-        require(contracts[airline].passenger == insured, "Insure was not an insured passenger.");
-        require(payout == value, "Payout must be greater than insured value.");
-        require((airline != address(0) && insured != address(0)), "Accounts must be valid address.");
-
-        payouts[insured] = payout;
+        require((fund != address(0) && insured != address(0)), "Accounts must be valid address.");
+        require(funds[fund].name.length > 0, "The target fund does not exist.");
+        require(contracts[insured].passenger == insured, "Insure was not an insured passenger.");
     }
 
     function withdraw(address insured) external requireOperational returns(uint256){
@@ -372,19 +380,6 @@ contract FlightSuretyData is ISuretyData {
         return value;
     }
 
-   /**
-    * @dev Initial funding for the insurance. Unless there are too many delayed flights
-    *      resulting in insurance payouts, the contract should be self-sustaining
-    */   
-    function fund
-                            (   
-                            )
-                            external
-                            payable
-    {
-        funds[contractOwner].amount += msg.value;
-    }
-    function _fund(address seed, string memory name, )
     /********************************************************************************************/
     /*                                     END Insurance FUNCTIONS                             */
     /********************************************************************************************/
