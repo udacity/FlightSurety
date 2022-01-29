@@ -121,6 +121,7 @@ contract FlightSuretyApp {
                              address airlineAddress,
                              string airlineName
                             )
+                            requireIsOperational
                             public
     {
         bool success = flightSuretyData.registerAirline(airlineAddress, airlineName);
@@ -134,14 +135,14 @@ contract FlightSuretyApp {
 
     function registerFlight
                                 (
-                                 string flightID,
+                                 string flight,
                                  string location,
                                  uint256 timestamp
                                 )
                                 external
                                 requireIsOperational
     {
-        bytes32 key = keccak256(abi.encodePacked(msg.sender, flightID, timestamp));
+        bytes32 key = getFlightKey(msg.sender, flight, timestamp);
         require(flights[key].isRegistered == false, "Flight can only be registered once");
         flights[key] = Flight ({
                                     isRegistered: true,
@@ -167,8 +168,17 @@ contract FlightSuretyApp {
                                 internal
                                 pure
     {
-        uint256 dummy2 = timestamp;
+        bytes32 key = getFlightKey(airline, flight, timestamp);
+        require(flights[key].isRegistered, "Flight does not exists");
+
+        flights[key].statusCode = statusCode;
+
+        if(statusCode == STATUS_CODE_LATE_AIRLINE)
+        {
+            flightSuretyData.creditInsurees(flight);
+        }
     }
+
 
 
     // Generate a request for oracles to fetch flight information
@@ -367,16 +377,21 @@ contract FlightSuretyApp {
 }
 
 contract FlightSuretyData {
-    function isOperational() public view/// @title A title that should describe the contract/interface
-    /// @author The name of the author
-    /// @notice Explain to an end user what this does
-    /// @dev Explain to a developer any extra details
-     returns(bool);
-    function setOperatingStatus(bool mode);
-    // function buy();
-    // function creditInsurees();
-    // function pay();
-    // function fund();
+    function isOperational() public view returns(bool);
+    function getAirlineCounts() public view returns(uint); 
+    function isAirline() external view returns(bool);
+    function authorizeCaller(address addressToAuthorize) external;
+    function checkIfAuthorized(address caller) external view returns(bool);
+    function setOperatingStatus(bool mode) external;
+    function getCredit(string flightID, address passenger) public view returns (uint256);
+    function getInsurance(string flightID, address passenger) public view returns (uint256);
+    function getVotes(address airlineAddress) public view returns (uint256);
+    function vote(address candidate) external;
+    function buy(string flightID) external payable returns(uint256);
+    function creditInsurees(string flightID, address passenger) external;
+    function pay(string fligthtID) external payable;
+    function fund() public payable;
+    function getFlightKey(address airline, string memory flight, uint256 timestamp) pure internal returns(bytes32);
     function registerAirline(address airlineAddress, string airlineName) external returns (bool);
     function getFlightKey(address airline, string memory flight, uint256 timestamp);
 }
