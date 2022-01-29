@@ -261,6 +261,7 @@ contract('Flight Surety Tests', async (accounts) => {
         try {
             insurance = await config.flightSuretyData.getInsurance.call(testFirstFlightID, testPassenger);
             await config.flightSuretyData.creditInsurees(testFirstFlightID, testPassenger);
+            // await config.flightSuretyData.creditInsurees(testFirstFlightID);
             credit = await config.flightSuretyData.getCredit.call(testFirstFlightID, testPassenger);
 
         }

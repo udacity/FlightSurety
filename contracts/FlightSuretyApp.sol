@@ -124,7 +124,7 @@ contract FlightSuretyApp {
                             requireIsOperational
                             public
     {
-        bool success = flightSuretyData.registerAirline(airlineAddress, airlineName);
+        flightSuretyData.registerAirline(airlineAddress, airlineName);
     }
 
 
@@ -146,7 +146,7 @@ contract FlightSuretyApp {
         require(flights[key].isRegistered == false, "Flight can only be registered once");
         flights[key] = Flight ({
                                     isRegistered: true,
-                                    flightCode: flightID,
+                                    flightCode: flight,
                                     location: location,
                                     statusCode:STATUS_CODE_UNKNOWN,
                                     updatedTimestamp: timestamp,
@@ -166,16 +166,18 @@ contract FlightSuretyApp {
                                     uint8 statusCode
                                 )
                                 internal
-                                pure
+                                requireIsOperational
     {
         bytes32 key = getFlightKey(airline, flight, timestamp);
         require(flights[key].isRegistered, "Flight does not exists");
 
         flights[key].statusCode = statusCode;
+        address passenger = msg.sender;
 
         if(statusCode == STATUS_CODE_LATE_AIRLINE)
         {
-            flightSuretyData.creditInsurees(flight);
+            // flightSuretyData.creditInsurees(flight);
+            flightSuretyData.creditInsurees(flight, passenger);
         }
     }
 
@@ -389,9 +391,9 @@ contract FlightSuretyData {
     function vote(address candidate) external;
     function buy(string flightID) external payable returns(uint256);
     function creditInsurees(string flightID, address passenger) external;
+    // function creditInsurees(string flightID) external;
     function pay(string fligthtID) external payable;
     function fund() public payable;
     function getFlightKey(address airline, string memory flight, uint256 timestamp) pure internal returns(bytes32);
     function registerAirline(address airlineAddress, string airlineName) external returns (bool);
-    function getFlightKey(address airline, string memory flight, uint256 timestamp);
 }

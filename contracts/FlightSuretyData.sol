@@ -10,8 +10,8 @@ contract FlightSuretyData {
     /********************************************************************************************/
     uint8 private constant MINIMUM_AIRLINE_PARTICIPANT = 4;
     uint256 public constant MAX_INSURANCE_LIMIT = 1 ether;
-    uint256 public constant MIN_FUNDS = 10 ether;
-    // uint256 public constant MIN_FUNDS = 0.1 ether;
+    // uint256 public constant MIN_FUNDS = 10 ether;
+    uint256 public constant MIN_FUNDS = 0.1 ether;
 
 
     address private contractOwner;                                      // Account used to deploy contract
@@ -208,7 +208,7 @@ contract FlightSuretyData {
 
     function checkIfAuthorized
                             (
-                            address caller
+                                address caller
                             )
                             external
                             view
@@ -257,8 +257,8 @@ contract FlightSuretyData {
     */
     function registerAirline
                             (
-                             address airlineAddress,
-                             string airlineName
+                                address airlineAddress,
+                                string airlineName
                             )
                             external
                             //contract must be operational
@@ -299,7 +299,7 @@ contract FlightSuretyData {
     */
     function buy
                             (
-                             string flightID
+                                string flightID
                             )
                             external
                             payable
@@ -353,12 +353,16 @@ contract FlightSuretyData {
             // get the current data
             uint256 currCredit = flights[flightID].passengers[passenger].credit;
             uint256 currInsurance = flights[flightID].passengers[passenger].insurance;
+            // uint256 currCredit = flights[flightID].passengers[msg.sender].credit;
+            // uint256 currInsurance = flights[flightID].passengers[msg.sender].insurance;
 
             // EFFECT
             flights[flightID].passengers[passenger].insurance = 0;
+            // flights[flightID].passengers[msg.sender].insurance = 0;
 
             //TRANSFER
             flights[flightID].passengers[passenger].credit = currCredit + currInsurance + currInsurance.div(2);
+            // flights[flightID].passengers[msg.sender].credit = currCredit + currInsurance + currInsurance.div(2);
         }
     }
 

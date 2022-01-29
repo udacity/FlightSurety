@@ -64,3 +64,5 @@ typings/
 .env
 
 ~$*.pptx
+node_modules
+node_modules_new
