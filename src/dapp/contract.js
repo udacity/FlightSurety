@@ -33,6 +33,49 @@ export default class Contract {
         });
     }
 
+    // async registerAirline(airline, name, callback){
+    //     let self = this;
+    //     let payload = {
+    //         airlineAddress: airline,
+    //         name: name,
+    //         sender: self.owner
+    //     }
+
+    //     // await this.web3.eth.getAccounts((error, accts) => {
+    //     //     payload.sender = accts[0];
+    //     // });
+
+    //     self.flightSuretyApp.methods
+    //         .registerAirline(payload.airline, payload.name)
+    //         .send({from: payload.sender}, (error, result) => {
+    //             if (error)
+    //             {
+    //                 console.log(error);
+    //                 callback(error,payload);
+    //             }
+    //             else
+    //             {
+    //                 self.flightSuretyData.methods
+    //                 .isRegistered(payload.airline)
+    //                 .call({from: payload.sender}, (error, result) =>
+    //                 {
+    //                     if(error)
+    //                     {
+    //                         payload.message = 'Cannot register airlines, maybe not enough votes available';
+    //                         callback(error, payload);
+    //                     }
+    //                     else 
+    //                     {
+    //                         payload.message = 'Airline ' + payload.name + ' from ' + payload.airline + ' registered';
+    //                         callback(error, payload)
+    //                     }
+
+    //                 });
+    //             }
+    //         });
+
+    // }
+
     isOperational(callback) {
        let self = this;
        self.flightSuretyApp.methods

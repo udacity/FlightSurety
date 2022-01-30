@@ -32,22 +32,24 @@
         <h5 class="form-header" data-component="header">
         Register new airlines
         </h5>
-        <div class="row top-20">
-            <label class="form">Airline's Address</label> 
-            <input type="text" id="registered-airline"> 
-            <btn class="btn btn-primary" id="register-airline">Register Airline</btn>
+        <div class="airlineRegisterNew">
+            <label class="form">Airline's Address</label><br>
+            <input type="text" id="registered-airline"> <br><br>
+            <label class="form">Airline's Name</label><br>
+            <input type="text" id="registered-name"> <br><br>
+            <btn class="btn btn-primary" id="register-airline">Register Airline</btn><br>
         </div>
         
         <br>
         <h5 class="form-header" data-component="header">
         Fund Airline to join the insurance program (min. 10 ETH)
         </h5>
-        <div class="row top-20">
+        <div class="airlineFund">
             <label class="form">Registered Airline</label><br>
-            <input type="text" id="funded-airline"><br>
+            <input type="text" id="funded-airline"><br><br>
             <label class="form">Funds</label><br>
-            <input type="number" id="fund"><br>
-            <label class="form">ETH</label>
+            <input type="number" id="fund">
+            <label class="form">ETH</label><br><br>
             <btn class="btn btn-primary" id="fund-airline">Fund Airline</btn><br>
         </div>
 
@@ -61,14 +63,16 @@
         <h5 class="form-header" data-component="header">
         Register new Flights
         </h5>
-        <div class="row top-20">
-            <label class="form">Flight-Number</label>
-            <input type="text" id="flight-number"> 
-            <label class="form">Address</label>
-            <input type="text" id="airline-address"> 
-            <label class="form">Timestamp</label>
-            <input type="time" id="timestamp"> 
-            <btn class="btn btn-primary" id="register">Register Airline</btn>
+        <div class="flightsRegisterNew">
+            <label class="form">Flight-ID</label><br>
+            <input type="text" id="flight-number"> <br><br>
+            <label class="form">Address</label><br>
+            <input type="text" id="airline-address"><br> <br>
+            <label class="form">Time</label><br>
+            <input type="time" id="timestamp"> <br><br>
+            <label class="form">Date</label><br>
+            <input type="date" id="timestamp"> <br><br>
+            <btn class="btn btn-primary" id="register">Register Flight</btn>
         </div>
 
         <br>
@@ -81,14 +85,14 @@
         <h5 class="form-header" data-component="header">
         Purchase insurance of a registered flight (max. 1 ETH per flight)
         </h5>
-        <div class="row top-20">
-            <label class="form">Passenger's Address</label>
-            <input type="text" id="passenger"> 
-            <label class="form">Flight</label>
-            <input type="text" id="flight"> 
-            <label class="form">Insurance</label>
-            <input type="number" id="insurance"> 
-            <label class="form">ETH</label>
+        <div class="passengerPurchaseInsurance">
+            <label class="form">Passenger's Address</label><br>
+            <input type="text" id="passenger"> <br><br>
+            <label class="form">Flight</label><br>
+            <input type="text" id="flight"> <br><br>
+            <label class="form">Insurance</label><br>
+            <input type="number" id="insurance">
+            <label class="form">ETH</label><br><br>
             <btn class="btn btn-primary" id="Purchase">Purchase Insurance</btn>
         </div>
 
@@ -96,14 +100,14 @@
         <h5 class="form-header" data-component="header">
         Check how much insurance was purchased for the flight
         </h5>
-        <div class="row top-20">
-            <label class="form">Passenger's Address</label>
-            <input type="text" id="passenger"> 
-            <label class="form">Flight</label>
-            <input type="text" id="flight"> 
-            <label class="form">Insurance</label>
+        <div class="passengerCheckInsurance">
+            <label class="form">Passenger's Address</label><br>
+            <input type="text" id="passenger"> <br><br>
+            <label class="form">Flight</label><br>
+            <input type="text" id="flight"> <br><br>
+            <label class="form">Insurance</label><br>
             <input type="number" id="insurance" readonly>
-            <label class="form">ETH</label>
+            <label class="form">ETH</label><br><br>
             <btn class="btn btn-primary" id="Purchase">Show Purchased Fund</btn>
         </div>
 
@@ -111,14 +115,14 @@
         <h5 class="form-header" data-component="header">
         In case the flight was delayed, passenger can withdraw the fund (1.5x the insurance paid)
         </h5>
-        <div class="row top-20">
-            <label class="form">Passenger's Address</label>
-            <input type="text" id="passenger"> 
-            <label class="form">Flight</label>
-            <input type="text" id="flight"> 
-            <label class="form">Payment</label>
+        <div class="passengerWithdrawFund">
+            <label class="form">Passenger's Address</label><br>
+            <input type="text" id="passenger"> <br><br>
+            <label class="form">Flight</label><br>
+            <input type="text" id="flight"> <br><br>
+            <label class="form">Payment</label><br>
             <input type="number" id="payment" readonly> 
-            <label class="form">ETH</label>
+            <label class="form">ETH</label><br><br>
             <btn class="btn btn-primary" id="Withdraw">Withdraw Funds</btn>
         </div>
     </main>
