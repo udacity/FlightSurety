@@ -23,14 +23,24 @@ import './flightsurety.css';
             let airline = DOM.elid('registered-airline').value;
             let name = DOM.elid('registered-name').value;
 
-            //DOM.elid('funded-airline').value = airline;
             //register airline
             contract.registerAirline(airline, name, (error, result) => {
-                // display('Airlines', 'register airlines', [{label: 'airline registered', error: error, value:result.registered}]);
+                display('Airlines', 'register airlines', [{label: 'airline registered', error: error, value:result.airlineAddress + ' : ' +  result.name}]);
             });
 
         })
     
+        DOM.elid('fund-airline').addEventListener('click', async() => {
+            let airline = DOM.elid('chosen-airline-to-fund').value;
+            let fund = DOM.elid('fund').value;
+
+            //register airline
+            contract.fund(airline, fund, (error, result) => {
+                display('Airlines', 'fund airlines', [{label: 'fund airlines', error: error, value:result.airlineAddress + ' : ' +  result.fund + ' : ' +  result.sum}]);
+            });
+
+        })
+
         DOM.elid('submit-oracle').addEventListener('click', () => {
             let flight = DOM.elid('flight-number').value;
             // Write transaction

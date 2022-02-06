@@ -80,6 +80,41 @@ export default class Contract {
                     self.flightSuretyApp.methods.getAirlineCounts().call({from:this.owner}, (error, result) => {
                         console.log("Airline Count: " + result);
                     });
+                    callback(error,payload);
+                }
+            });
+
+
+    }
+
+    async fund(airline, fund, callback){
+        let self = this;
+        let fund_wei = this.web3.utils.toWei(fund.toString(), "ether");
+
+        let payload = {
+            airlineAddress: airline,
+            fund: fund_wei,
+            sum: -10
+        }
+
+            self.flightSuretyApp.methods
+            .fund()
+            .send({from: payload.airlineAddress, value: payload.fund, gas: 5000000, gasPrice: 20000000}, (error, result) => {
+
+                if (error)
+                {
+                    console.log("fund error " +  error);
+                    callback(error,payload);
+                }
+                else
+                {
+                    self.flightSuretyApp.methods
+                    .getFunds()
+                    .call({from: payload.airlineAddress}, (error, result) => {
+                        payload.sum = result;
+                        console.log("Sum Fund: " + payload.sum);
+                    });
+                    callback(error,payload);
                 }
             });
 

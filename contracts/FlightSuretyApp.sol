@@ -127,6 +127,16 @@ contract FlightSuretyApp {
         flightSuretyData.registerAirline(airlineAddress, airlineName);
     }
 
+    function fund() public payable
+    {
+        flightSuretyData.fund();
+    }
+
+    function getFunds() public returns(uint256)
+    {
+        return flightSuretyData.getFunds();
+    }
+
     function getAirlineCounts() public returns(uint)
     {
         return flightSuretyData.getAirlineCounts();
@@ -398,6 +408,7 @@ contract FlightSuretyData {
     // function creditInsurees(string flightID) external;
     function pay(string fligthtID) external payable;
     function fund() public payable;
+    function getFunds () public returns(uint256);
     function getFlightKey(address airline, string memory flight, uint256 timestamp) pure internal returns(bytes32);
     function registerAirline(address airlineAddress, string airlineName) external returns (bool);
     function registerFirstAirline(address airlineAddress, string airlineName) external returns (bool);

@@ -451,6 +451,16 @@ contract FlightSuretyData {
         authorizedContracts[msg.sender] = true;
     }
 
+    function getFunds
+                            (
+                            )
+                            public
+                            requireIsOperational
+                            returns(uint256)
+    {
+        return airlines[msg.sender].fundAmounts;
+    }
+
     function getFlightKey
                         (
                             address airline,
