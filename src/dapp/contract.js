@@ -9,7 +9,7 @@ export default class Contract {
         this.web3 = new Web3(new Web3.providers.HttpProvider(config.url));
         this.flightSuretyApp = new this.web3.eth.Contract(FlightSuretyApp.abi, config.appAddress);
         this.initialize(callback);
-        this.owner = null;
+        // this.owner = null;
         this.airlines = [];
         this.passengers = [];
         this.appAddress = config.appAddress;
@@ -29,11 +29,20 @@ export default class Contract {
             while(this.passengers.length < 5) {
                 this.passengers.push(accts[counter++]);
             }
-
+            this.updateDataLists();
             callback();
         });
     }
 
+    updateDataLists(){
+
+        var funded_airline = document.getElementById('funded-airline');
+        this.airlines.forEach(function(item){
+            var option = document.createElement('option');
+            option.value = item;
+            funded_airline.appendChild(option);
+        });
+    }
     async registerAirline(airline, name, callback){
         let self = this;
 
@@ -46,42 +55,34 @@ export default class Contract {
         console.log("payload.airlineAddress:", payload.airlineAddress);
         console.log("payload.name:", payload.name);
         console.log("payload.sender:", payload.sender);
-
-        // await this.web3.eth.getAccounts((error, accts) => {
-        //     payload.sender = accts[0];
-        // });
-
         console.log("Owner: " + this.owner);
         console.log("appAddress: " + this.appAddress);
-        self.flightSuretyApp.methods
+
+            self.flightSuretyApp.methods
             .registerAirline(payload.airlineAddress, payload.name)
             .send({from: this.owner, gas: 5000000, gasPrice: 20000000}, (error, result) => {
                 console.log(error);
-                // if (error)
-                // {
-                //     console.log(error);
-                //     callback(error,payload);
-                // }
-                // else
-                // {
-                //     self.flightSuretyData.methods
-                //     .isRegistered(payload.airline)
-                //     .call({from: payload.sender}, (error, result) =>
-                //     {
-                //         if(error)
-                //         {
-                //             payload.message = 'Cannot register airlines, maybe not enough votes available';
-                //             callback(error, payload);
-                //         }
-                //         else 
-                //         {
-                //             payload.message = 'Airline ' + payload.name + ' from ' + payload.airline + ' registered';
-                //             callback(error, payload)
-                //         }
 
-                //     });
-                // }
+                self.airlines.push(payload.airlineAddress);
+                for(let i = 0; i < self.airlines.length; i++)
+                {
+                    console.log( (i+1) + ".th airline " + self.airlines[i]);
+                }
+
+                if (error)
+                {
+                    console.log(error);
+                    callback(error,payload);
+                }
+                else
+                {
+                    this.updateDataLists();
+                    self.flightSuretyApp.methods.getAirlineCounts().call({from:this.owner}, (error, result) => {
+                        console.log("Airline Count: " + result);
+                    });
+                }
             });
+
 
     }
 

@@ -31,7 +31,6 @@ contract FlightSuretyData {
     }
     mapping(address => Airline) private airlines;
     mapping(uint => Airline) private airlines2;
-    bool testtest = false;
     uint256 private airlineCount;
 
     // Clients  Obj
@@ -149,7 +148,8 @@ contract FlightSuretyData {
 
     modifier requireIsNotYetMember(address airlineAddress )
     {
-        require(!airlines[airlineAddress].isMember, "Airline is already a member!");
+        require(!airlines[airlineAddress].isMember, string(abi.encodePacked("Airline ", addressToString(airlineAddress), " is already a member!")));
+
         _;  // All modifiers require an "_" which indicates where the function body will be added
     }
 
@@ -288,9 +288,9 @@ contract FlightSuretyData {
                             //contract must be operational
                             requireIsOperational
                             // caller must be authorized
-                            requireIsAuthorized
+                            // requireIsAuthorized
                             // caller must already paid the fund
-                            requireIsFunded
+                            // requireIsFunded
                             // airline must not already be a member
                             requireIsNotYetMember(airlineAddress)
                             returns(bool)
@@ -304,6 +304,21 @@ contract FlightSuretyData {
         airlineCount++;
         return airlines[airlineAddress].isMember;
     }
+
+    function registerFirstAirline
+                            (
+                                address airlineAddress,
+                                string airlineName
+                            )
+                            external
+                            requireIsOperational
+                            requireIsNotYetMember(airlineAddress)
+                            returns(bool)
+    {
+        airlines[airlineAddress] = Airline({ airlineName: airlineName, isMember: true, fundAmounts: 0});
+        airlineCount++;
+    }
+
 
     function vote
                             (
