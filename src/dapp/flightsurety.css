@@ -4,6 +4,9 @@ body {
     background-size: cover;
 }
 
+.myinput {
+    width: 900px;
+}
 .container {
     margin-top: 400px;
     background-color: #000;
