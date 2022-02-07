@@ -17,6 +17,11 @@ contract FlightSuretyApp {
     /*                                       DATA VARIABLES                                     */
     /********************************************************************************************/
 
+    string private _bsf_contract = "bsf.contract";
+    string private _bsf_fund = "bsf.fund";
+    string private _bsf_airline = "bsf.airline";
+    string private _bsf_flight = "bsf.flight";
+
     /**
     * @dev Unknown Status
     */
@@ -46,6 +51,14 @@ contract FlightSuretyApp {
     */
     address private contractOwner;
 
+    /**
+    * @dev The fee types supported by the platform.
+    */
+    enum FeeType {
+        Airline,
+        Fund,
+        Insurance
+    }
     struct Flight {
         bool isRegistered;
         uint8 statusCode;
@@ -112,7 +125,7 @@ contract FlightSuretyApp {
                             pure 
                             returns(bool) 
     {
-        return true;  // Modify to call data contract's status
+        return data.operational();  // Modify to call data contract's status
     }
 
     /********************************************************************************************/
@@ -126,13 +139,18 @@ contract FlightSuretyApp {
     * @return { votes:uint256 }
     */   
     function registerAirline
-                            (   
+                            (
+                                string memory name,
+                                address account
                             )
                             external
                             pure
                             returns(bool success, uint256 votes)
     {
-        return (success, 0);
+        require(!data.isAirlineRegistered(name), "The airline " + name + " is already registered.");
+        uint256 fee = data.fee(FeeType.Airline);
+        require(msg.value - fee > 0, "Not enough value to cover the airline registration fee.");
+        bool registered = data.registerAirline(account, name);
     }
 
 
@@ -141,13 +159,16 @@ contract FlightSuretyApp {
     */  
     function registerFlight
                                 (
-                                    address airline,
+                                    string memory airline,
                                     string memory flight,
                                     uint8 status
                                 )
                                 external
                                 pure
     {
+        require(data.isAirlineRegistered(airline), "The airline " + airline + " is not registered.");
+        require(data.isAirlineOperational(airline), "The airline " + airline + " is not operational.");
+
 
     }
     
@@ -156,7 +177,7 @@ contract FlightSuretyApp {
     */  
     function processFlightStatus
                                 (
-                                    address airline,
+                                    string memory airline,
                                     string memory flight,
                                     uint256 timestamp,
                                     uint8 statusCode
@@ -164,6 +185,7 @@ contract FlightSuretyApp {
                                 internal
                                 pure
     {
+
     }
 
 

@@ -42,8 +42,5 @@
     "webpack-cli": "^3.3.1",
     "webpack-dev-server": "3.3.1",
     "webpack-node-externals": "1.7.2"
-  },
-  "dependencies": {
-    "bsf-solidity": "^1.0.0"
   }
 }

@@ -1,23 +1,27 @@
+// SPDX-License-Identifier: MIT
 pragma solidity ^0.4.25;
 
+import "../node_modules/openzeppelin-solidity/contracts/ownership/Ownable.sol";
 import "../node_modules/openzeppelin-solidity/contracts/math/SafeMath.sol";
-import "./IFlightSuretyData.sol";
 
-contract FlightSuretyData is ISuretyData {
+import "./SuretyContract.sol";
+import "./SuretyFund.sol";
+
+contract FlightSuretyData is Ownable, SuretyFund, SuretyContract {
     using SafeMath for uint256;
 
     /********************************************************************************************/
     /*                                       DATA VARIABLES                                     */
     /********************************************************************************************/
 
+    string private _bsf_airline = "bsf.airline";
+    string private _bsf_airline_vote = "bsf.airline.vote";
+
     /**
     * @dev Operational status of the contract.
     */
     bool private _operational = true;
-    /**
-    * @dev Current rate for registering and adding liquidity to a fund.
-    */
-    uint256 private _feeFund = 0.01;
+
     /**
     * @dev Current registration rate for airlines.
     */
@@ -26,34 +30,18 @@ contract FlightSuretyData is ISuretyData {
     * @dev Current insurance rate.
     */
     uint256 private _feeInsurance = 0.01;
-
+    /**
+    * @dev Current payout rate.
+    */
     uint256 private _ratePayout = 1.0;
-    uint256 private _rateContribution = 1.0;
 
     /**
     * @dev Airlines accessor.
     */
-    mapping(address => Airline) _airlines;
-    /**
-    * @dev Insurance Contracts accessor.
-    */
-    mapping(address => Insurance) _contracts;
-    /**
-    * @dev Insurance Funds accessor.
-    */
-    mapping(address => SuretyFund) _funds;
-    /**
-    * @dev Airline Registration / De-Registration.
-    */
-    mapping(string => VoteRound) _rounds;
-    /**
-    * @dev Voter
-    */
-    mapping(address => Vote) _votes;
-    /**
-    * @dev Authorized contract addresses.
-    */
-    mapping(address => bool) _authorized;
+    mapping(bytes32 => Airline) _airlines;
+    mapping(bytes32 => AirlineVote[]) _airlineVotes;
+
+    mapping(address => uint256) _payouts;
 
     /**
     * @dev The fee types supported by the platform.
@@ -64,54 +52,24 @@ contract FlightSuretyData is ISuretyData {
         Insurance
     }
     /**
-    * @dev Defines a "registered" airline.
+    * @dev Defines an airline.
     */
     struct Airline {
-        bool isOperational;
-        bytes32 fund;
+        address account;
+        string name;
+        bool registered;
+        bool operational;
+        uint256 vote;
     }
-    /**
-    * @dev Defines an insurance contract.
-    */
-    struct Insurance {
+    struct AirlineVote {
         /**
-        * @dev Insured account address.
+        * @dev Account that cast the vote.
         */
         address account;
         /**
-        * @dev Insured value.
+        * Yay or nay.
         */
-        uint256 value;
-    }
-    /**
-    * @dev Defines a surety fund.
-    */
-    struct SuretyFund {
-        bytes32 id;
-        address owner;
-        string name;
-        uint256 ratePayout;
-        uint256 rateContribution;
-        bool isPublic;
-    }
-    /**
-    * @dev Defines a surety fund contribution.
-    */
-    struct SuretyFundContribution {
-        address contributor;
-
-    }
-    struct VoteRound {
-        string id;
-        bool result;
-        int256 deadline;
-        address airline;
-    }
-    /**
-    * @dev Defines a vote.
-    */
-    struct Vote {
-        bool status;
+        bool choice;
     }
 
     /********************************************************************************************/
@@ -133,25 +91,29 @@ contract FlightSuretyData is ISuretyData {
     event ContractDeAuthorized(address indexed deployed);
     /**
     * @dev Event for airline registration.
+    * @param {id:bytes32} The id of the airline in the mapping.
+    * @param {account:address} The account that owns the airline.
+    * @param {name:string} The name of the airline.
     */
-    event AirlineRegistered(address indexed account);
+    event AirlineRegistered(bytes32 id, string name, address indexed account);
     /**
     * @dev Event for airline status change, operational / non-operational.
     */
     event AirlineStatusChange(address indexed account, bool operational);
     /**
+    * TODO: Document
+    */
+    event AirlineVoteRegistered(bytes32 id, bool choice, address indexed account);
+
+    /**
     * @dev Event for contract payout.
     */
     event Payout(address indexed account, uint256 value);
-
     /**
     * @dev Constructor
     * @dev The deploying account becomes contractOwner
     */
-    constructor
-                                (
-                                ) 
-                                public 
+    constructor () public
     {
         _transferOwnership(msg.sender);
         _registerFund(contractOwner,"General Fund");
@@ -185,40 +147,6 @@ contract FlightSuretyData is ISuretyData {
     /********************************************************************************************/
     /*                                       UTILITY FUNCTIONS                                  */
     /********************************************************************************************/
-    /**
-     * @dev Returns the address of the current owner.
-     */
-    function owner() external view returns (address) {
-        return _owner;
-    }
-    /**
-     * @dev Leaves the contract without owner. It will not be possible to call
-     * `onlyOwner` functions anymore. Can only be called by the current owner.
-     *
-     * NOTE: Renouncing ownership will leave the contract without an owner,
-     * thereby removing any functionality that is only available to the owner.
-     */
-    function renounceOwnership() external onlyOwner {
-        _transferOwnership(address(0));
-    }
-    /**
-     * @dev Transfers ownership of the contract to a new account (`newOwner`).
-     * Can only be called by the current owner.
-     */
-    function transferOwnership(address newOwner) external  onlyOwner {
-        require(newOwner != address(0), "Ownable: new owner is the zero address");
-        _transferOwnership(newOwner);
-    }
-
-    /**
-     * @dev Transfers ownership of the contract to a new account (`newOwner`).
-     * Internal function without access restriction.
-     */
-    function _transferOwnership(address newOwner) internal virtual {
-        address oldOwner = _owner;
-        _owner = newOwner;
-        emit OwnershipTransferred(oldOwner, newOwner);
-    }
 
     /**
     * @dev Calculates the fee for specified fee type.
@@ -236,20 +164,6 @@ contract FlightSuretyData is ISuretyData {
         }
     }
     /**
-    * @dev Sets the status of an 'account' as a multi-caller.
-    * @dev Multi-call is mainly for airlines **
-    */
-    function _authorize(address account, bool status) private {
-        require(multi[account].status != status, "Account status already in this status.");
-        multi[account] = status;
-    }
-    /**
-    * @dev Get the status of an authorized contract.
-    */
-    function getAuthorization(address account) external requireOperational returns(uint256) {
-        return multi[account];
-    }
-    /**
     * @dev Get operating status of contract
     * @return A bool that is the current operating status
     */      
@@ -257,18 +171,55 @@ contract FlightSuretyData is ISuretyData {
         return operational;
     }
     /**
+    * @dev Gets the current fee for specified fee type.
+    * @param {feeType:FeeType}
+    * @return {_fee:uint256} The current fee for specified type.
+    */
+    function fee(FeeType feeType) external view returns(uint256){
+        if(FeeType.Fund == feeType){
+            return _feeFund;
+        }
+        if(FeeType.Airline == feeType){
+            return _feeAirline;
+        }
+        if(FeeType.Insurance == feeType){
+            return _feeInsurance;
+        }
+        return 0;
+    }
+    /**
+    * @dev Sets the fee for a specified fee type.
+    */
+    function setFee(FeeType feeType, uint256 amount) external {
+        require(amount >= 0, "Fee cannot be negative.");
+        if(FeeType.Fund == feeType){
+            _feeFund = amount;
+        }
+        if(FeeType.Airline == feeType){
+            _feeAirline = amount;
+        }
+        if(FeeType.Insurance == feeType){
+            _feeInsurance = amount;
+        }
+    }
+    /**
     * @dev Sets contract operations on/off
-    *
-    * When operational mode is disabled, all write transactions except for this one will fail
+    * @notice When operational mode is disabled, all write transactions except for this one will fail
     */    
     function setOperatingStatus(bool mode) external onlyOwner {
         operational = mode;
     }
     /**
-    * @dev TODO: Document
+    * @dev Gets the key to identify a flight.
     */
     function getFlightKey(address airline, string memory flight, uint256 timestamp) pure internal returns(bytes32) {
         return keccak256(abi.encodePacked(airline, flight, timestamp));
+    }
+    /**
+    * @dev Gets the key to identify a fund.
+    */
+    function getFundKey(string memory name){
+        return keccak256(abi.encodePacked(name));
     }
 
     /********************************************************************************************/
@@ -281,36 +232,63 @@ contract FlightSuretyData is ISuretyData {
     /**
     * TODO: Document
     */
-    function isAirlineRegistered(address account) external returns(bool) {
-        require(account != address(0), "'account' must be a valid address.");
-        return airlines[account] != null;
+    function isAirlineRegistered(string memory name) external returns(bool) {
+        require(bytes32(name).length > 0, "'name' must be a valid string.");
+        return airlines[keccak256(abi.encodePacked(_bsf_airline,name))].registered;
     }
     /**
     * TODO: Document
     */
-    function isAirlineOperational(address account) external returns(bool){
-        require(account != address(0), "'account' must be a valid address.");
-        return airlines[account] != null && airlines[account].isOperational;
+    function isAirlineOperational(string memory name) external returns(bool){
+        require(bytes32(name).length > 0, "'name' must be a valid string.");
+        return airlines[keccak256(abi.encodePacked(_bsf_airline,name))].isOperational;
     }
     /**
     * @dev Registers an account as an airline.
     */
-    function _registerAirline(address account) private requireOperational {
-        airlines[account] = Airline({
-            isOperational: true
+    function _registerAirline(address account, string memory name) private {
+        bytes32 id = keccak256(abi.encodePacked(_bsf_airline, name));
+        _airlines[id] = Airline({
+            account: account,
+            registered: true,
+            isOperational: false,
+            vote: block.timestamp + 2 days
         });
-        _setMultiCall(account);
-        emit AirlineRegistered(account);
+        emit AirlineRegistered(id, name);
+    }
+    /**
+    * @dev Registers an airline vote.
+    */
+    function _registerAirlineVote(bytes32 id, bool choice) private {
+        _airlineVotes[id].push(AirlineVote({account: msg.sender,choice:choice}));
+        emit AirlineVoteRegistered(id, choice, msg.sender);
     }
    /**
     * @dev Add an airline to the registration queue
-    *     @dev Can only be called from FlightSuretyApp contract
+    * @dev Can only be called from FlightSuretyApp contract
     * @param { account:address }
     */   
-    function registerAirline(address account) external pure {
-        require(airlines[account] == null, "Airline is already registered.");
+    function registerAirline(address account, string memory name)
+        external
+        pure
+        requireOperational
+        returns (bool registered) {
+            uint256 id = keccak256(abi.encodePacked(_bsf_airline,name));
+            require(_airlines[id].registered == false, "Airline is already registered.");
+            _registerAirline(account, name);
+            require(_airlineVotes[id].length == 0, "Airline vote has already begun.");
+            _registerAirlineVote(name);
+            registered = _airlines[id].registered;
+    }
 
-        _registerAirline(account);
+    function registerAirlineVote(string memory name, bool choice)
+    external
+    pure
+    requireOperational {
+        uint256 id = keccak256(abi.encodePacked(_bsf_airline, name));
+        require(block.timestamp - _airlines[id].vote > 0, "The voting period has expired.");
+        _registerAirlineVote(id, choice);
+        // TODO: evaluate token burn.
     }
 
     /********************************************************************************************/
@@ -336,11 +314,22 @@ contract FlightSuretyData is ISuretyData {
         emit FundRegistered(account, name);
     }
 
-    function registerFund(string memory name, bool isPublic) external requireOperational {
-        uint256 fee = _calculateFee(FeeType.Fund, msg.value);
-        uint256 amount = msg.value - fee;
+    /**
+    * @see {_registerFund:function}
+    */
+    function registerFund(string name, bool isPublic) external requireOperational {
+        require(!existsFund(name), "A fund with this name already exists.");
+        uint256 _fee = _calculateFee(FeeType.Fund, msg.value);
+        uint256 amount = msg.value - _fee;
         require(amount > 0, "Appropriate fee not supplied.");
         _registerFund(msg.sender, name, amount ,isPublic);
+    }
+
+    /**
+    * @dev Determines if a fund with the specified name exists.
+    */
+    function existsFund(string name) external returns(bool) {
+        return _funds[getFundKey(name)].owner != address(0);
     }
 
     /********************************************************************************************/
@@ -360,9 +349,11 @@ contract FlightSuretyData is ISuretyData {
 
     }
 
-    function _credit(address fund, address insured, uint256 value) private {
-        uint256 payout = funds[insured].value.mul(_);
-        payouts[insured] = payout;
+    function _credit(bytes32 _contract, uint256 value) private {
+        Insurance bond = _contracts[_contract];
+        require(bond.payable, "Insurance contract must be in a 'payable' state.");
+        //_payouts[bond.account]
+        //payouts[insured] = payout;
     }
 
     /**
@@ -370,13 +361,14 @@ contract FlightSuretyData is ISuretyData {
     */
     function credit(address fund, address insured, uint256 value) external pure requireOperational {
         require((fund != address(0) && insured != address(0)), "Accounts must be valid address.");
-        require(funds[fund].name.length > 0, "The target fund does not exist.");
-        require(contracts[insured].passenger == insured, "Insure was not an insured passenger.");
+        require(_funds[fund].name.length > 0, "The target fund does not exist.");
+        require(_contracts[insured].passenger == insured, "Insure was not an insured passenger.");
+
     }
 
     function withdraw(address insured) external requireOperational returns(uint256){
         require(msg.sender == insured, "Only insured party may withdraw an authorized payout.");
-        uint256 value = payouts[insured];
+        uint256 value = 0;
         return value;
     }
 
@@ -392,7 +384,7 @@ contract FlightSuretyData is ISuretyData {
                             external 
                             payable 
     {
-        fund();
+        //fund();
     }
 }
 
