@@ -19,6 +19,8 @@ export default class Contract {
         this.web3.eth.getAccounts((error, accts) => {
            
             this.owner = accts[0];
+            // we need to fund the owner so that it can take part with the contract
+            this.fund(this.owner,0.1);
             console.log("Owner: " + this.owner);
             let counter = 1;
             
