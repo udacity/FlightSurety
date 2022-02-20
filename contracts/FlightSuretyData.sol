@@ -173,7 +173,7 @@ contract FlightSuretyData {
 
     modifier requireIsFunded()
     {
-        require(airlines[msg.sender].fundAmounts >= MIN_FUNDS, "not enough fund allocated");
+        require(airlines[msg.sender].fundAmounts >= MIN_FUNDS, string(abi.encodePacked("Airline ", addressToString(msg.sender), "has not allocated enough fund!")));
         _;
     }
 
@@ -290,7 +290,7 @@ contract FlightSuretyData {
                             // caller must be authorized
                             // requireIsAuthorized
                             // caller must already paid the fund
-                            requireIsFunded
+                            // requireIsFunded
                             // airline must not already be a member
                             requireIsNotYetMember(airlineAddress)
                             returns(bool)
@@ -327,6 +327,7 @@ contract FlightSuretyData {
                             external
                             requireIsOperational
                             requireIsRegistered
+                            requireIsFunded
     {
         require(airlines[msg.sender].votedFlag[candidate] == false, "User already used their vote for this airline");
         airlines[msg.sender].votedFlag[candidate] = true;

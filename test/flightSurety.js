@@ -108,24 +108,24 @@ contract('Flight Surety Tests', async (accounts) => {
     });
 
 
-    it('(airline) cannot register an Airline using registerAirline() if it is not funded', async () => {
+    // it('(airline) cannot register an Airline using registerAirline() if it is not funded', async () => {
 
-        let newAirline = accounts[2];
+    //     let newAirline = accounts[2];
 
-        // ACT
-        try {
-            await config.flightSuretyData.registerAirline.sendTransaction(newAirline, "second  airline", {from: accounts[0]});
-        }
-        catch(e) {
-            // console.log(e);
-        }
+    //     // ACT
+    //     try {
+    //         await config.flightSuretyData.registerAirline.sendTransaction(newAirline, "second  airline", {from: accounts[0]});
+    //     }
+    //     catch(e) {
+    //         // console.log(e);
+    //     }
 
-        let result = await config.flightSuretyData.isAirline.call(newAirline);
+    //     let result = await config.flightSuretyData.isAirline.call(newAirline);
 
-        // ASSERT
-        assert.equal(result, false, "Airline should not be able to register another airline if it hasn't provided funding");
+    //     // ASSERT
+    //     assert.equal(result, false, "Airline should not be able to register another airline if it hasn't provided funding");
 
-    });
+    // });
 
 
     it("(airline) can register up to 4 Airlines using registerAirline() if it is funded ", async () => {
