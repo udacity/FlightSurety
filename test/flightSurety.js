@@ -27,7 +27,7 @@ contract('Flight Surety Tests', async (accounts) => {
   /* Operations and Settings                                                              */
   /****************************************************************************************/
 
-    it(` (contract) Check App-Data connection`, async function () {
+    it(`(contract) Check App-Data connection`, async function () {
 
         let status = await config.flightSuretyData.checkIfAuthorized.call(config.flightSuretyApp.address);
         assert.equal(status, true, "App is authorized to call Data");
@@ -114,7 +114,7 @@ contract('Flight Surety Tests', async (accounts) => {
 
         // ACT
         try {
-            await config.flightSuretyData.registerAirline(newAirline, {from: accounts[0]});
+            await config.flightSuretyData.registerAirline.sendTransaction(newAirline, "second  airline", {from: accounts[0]});
         }
         catch(e) {
             // console.log(e);
@@ -135,8 +135,8 @@ contract('Flight Surety Tests', async (accounts) => {
         try {
             await config.flightSuretyData.fund({from: accounts[0], value: funds});
             await config.flightSuretyData.registerAirline.sendTransaction(accounts[2], "second airline", {from: accounts[0]});
-            await config.flightSuretyData.registerAirline.sendTransaction(accounts[3], "second airline", {from: accounts[0]});
-            await config.flightSuretyData.registerAirline.sendTransaction(accounts[4], "second airline", {from: accounts[0]});
+            await config.flightSuretyData.registerAirline.sendTransaction(accounts[3], "third airline", {from: accounts[0]});
+            await config.flightSuretyData.registerAirline.sendTransaction(accounts[4], "fourth airline", {from: accounts[0]});
         }
         catch(e) {
             console.log(e);

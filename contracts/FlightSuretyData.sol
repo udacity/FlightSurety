@@ -148,7 +148,7 @@ contract FlightSuretyData {
 
     modifier requireIsNotYetMember(address airlineAddress )
     {
-        require(!airlines[airlineAddress].isMember, string(abi.encodePacked("Airline ", addressToString(airlineAddress), " is already a member!")));
+        require(airlines[airlineAddress].isMember == false, string(abi.encodePacked("Airline ", addressToString(airlineAddress), " is already a member!")));
 
         _;  // All modifiers require an "_" which indicates where the function body will be added
     }
@@ -173,7 +173,7 @@ contract FlightSuretyData {
 
     modifier requireIsFunded()
     {
-        require(airlines[msg.sender].fundAmounts >= MIN_FUNDS);
+        require(airlines[msg.sender].fundAmounts >= MIN_FUNDS, "not enough fund allocated");
         _;
     }
 
@@ -290,7 +290,7 @@ contract FlightSuretyData {
                             // caller must be authorized
                             // requireIsAuthorized
                             // caller must already paid the fund
-                            // requireIsFunded
+                            requireIsFunded
                             // airline must not already be a member
                             requireIsNotYetMember(airlineAddress)
                             returns(bool)
@@ -392,16 +392,12 @@ contract FlightSuretyData {
             // get the current data
             uint256 currCredit = flights[flightID].passengers[passenger].credit;
             uint256 currInsurance = flights[flightID].passengers[passenger].insurance;
-            // uint256 currCredit = flights[flightID].passengers[msg.sender].credit;
-            // uint256 currInsurance = flights[flightID].passengers[msg.sender].insurance;
 
             // EFFECT
             flights[flightID].passengers[passenger].insurance = 0;
-            // flights[flightID].passengers[msg.sender].insurance = 0;
 
             //TRANSFER
             flights[flightID].passengers[passenger].credit = currCredit + currInsurance + currInsurance.div(2);
-            // flights[flightID].passengers[msg.sender].credit = currCredit + currInsurance + currInsurance.div(2);
         }
     }
 
