@@ -31,15 +31,15 @@ export default class Contract {
             while(this.passengers.length < 5) {
                 this.passengers.push(accts[counter++]);
             }
-            this.updateDataLists();
+            this.updateDataLists('funded-airline', this.airlines);
             callback();
         });
     }
 
-    updateDataLists(){
+    updateDataLists(elements, listings){
 
-        var funded_airline = document.getElementById('funded-airline');
-        this.airlines.forEach(function(item){
+        var funded_airline = document.getElementById(elements);
+        listings.forEach(function(item){
             var option = document.createElement('option');
             option.value = item;
             funded_airline.appendChild(option);
@@ -113,10 +113,12 @@ export default class Contract {
                     self.flightSuretyApp.methods
                     .getFunds()
                     .call({from: payload.airlineAddress}, (error, result) => {
-                        payload.sum = result;
+                        payload.sum = this.web3.utils.toWei(result, "ether");
+                        // payload.sum = 100;
                         console.log("Sum Fund: " + payload.sum);
+                        console.log("Sum Fund2: " + result);
+                        callback(error,payload);
                     });
-                    callback(error,payload);
                 }
             });
 
