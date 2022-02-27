@@ -141,19 +141,19 @@ export default class Contract {
 
     }
 
-    async registerFlight(airline, flight, callback){
+    async registerFlight(airline, flight, destination, callback){
         let self = this;
-        let fund_wei = this.web3.utils.toWei(fund.toString(), "ether");
 
         let payload = {
             airlineAddress: airline,
-            fund: fund_wei,
-            sum: -10
+            location: destination,
+            flight: flight,
+            timestamp: Math.floor(Date.now() / 1000)
         }
 
-        self.flightSuretyData.methods
-            .fund()
-            .send( {from: payload.airlineAddress, value: fund_wei}, (error, result) => {
+        self.flightSuretyApp.methods
+            .registerFlight(payload.flight, payload.location, payload.timestamp)
+            .call((error, result) => {
                 if (error)
                 {
                     console.log("fund error " +  error);
@@ -161,16 +161,10 @@ export default class Contract {
                 }
                 else
                 {
-                    self.flightSuretyData.methods
-                    .getFunds()
-                    .send({from: payload.airlineAddress}, (error, result) => {
-                        payload.sum = this.web3.utils.toWei(result.toString(), "ether");
-                        console.log("Sum Fund: " + payload.sum.toString());
-                        console.log("Sum Fund2: " + result.toString());
-                        // callback(error, payload);
-                    });
+                    console.log("flight registration successfull!")
                 }
             });
+    }
 
 
     }
