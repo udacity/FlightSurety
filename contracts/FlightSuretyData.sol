@@ -33,6 +33,9 @@ contract FlightSuretyData {
     mapping(uint => Airline) private airlines2;
     uint256 private airlineCount;
 
+    address private testAddress;
+    uint256 private testValue;
+
     // Clients  Obj
     struct Clients
     {
@@ -99,7 +102,7 @@ contract FlightSuretyData {
             _string[3+i*2] = HEX[uint8(_bytes[i + 12] & 0x0f)];
         }
         return string(_string);
-    }  
+    }
 
     /********************************************************************************************/
     /*                                       FUNCTION MODIFIERS                                 */
@@ -442,20 +445,42 @@ contract FlightSuretyData {
                             requireIsOperational
     {
         uint256 currentFunds = airlines[msg.sender].fundAmounts;
-        airlines[msg.sender].fundAmounts = currentFunds.add(msg.value);
+        /* airlines[msg.sender].fundAmounts = currentFunds.add(msg.value); */
+        airlines[msg.sender].fundAmounts = currentFunds + msg.value;
 
         // authorize caller when it is funded
         authorizedContracts[msg.sender] = true;
+        testAddress = msg.sender;
+        testValue = msg.value;
+    }
+
+    function getCurrAddress
+                        (
+                        )
+                        public
+                        returns(address)
+    {
+        return testAddress;
+    }
+
+    function getCurrVal
+                        (
+                        )
+                        public
+                        returns(uint256)
+    {
+        return testValue;
     }
 
     function getFunds
                             (
+                             address account
                             )
                             public
                             requireIsOperational
                             returns(uint256)
     {
-        return airlines[msg.sender].fundAmounts;
+        return airlines[account].fundAmounts;
     }
 
     function getFlightKey

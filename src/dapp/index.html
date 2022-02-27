@@ -49,7 +49,7 @@
             <input class="myinput" type="text" id="chosen-airline-to-fund" list="funded-airline" ><br><br>
             <datalist class="mydatalist" id="funded-airline"></datalist>
             <label class="form">Funds</label><br>
-            <input class="myinput" type="number" id="fund" placeholder="ETH"><br><br>
+            <input class="myinput" type="text" id="fund" placeholder="ETH"><br><br>
             <btn class="btn btn-primary" id="fund-airline">Fund Airline</btn><br>
         </div>
 
@@ -67,12 +67,9 @@
             <label class="form">Flight-ID</label><br>
             <input class="myinput" type="text" id="flight-number" placeholder="KUL123"> <br><br>
             <label class="form">Airline's Address</label><br>
-            <input class="myinput" type="text" id="airline-address" placeholder="0x123456789..."><br> <br>
-            <label class="form">Time</label><br>
-            <input class="myinput" type="time" id="timestamp"> <br><br>
-            <label class="form">Date</label><br>
-            <input class="myinput" type="date" id="timestamp"> <br><br>
-            <btn class="btn btn-primary" id="register">Register Flight</btn>
+            <input class="myinput" type="text" id="airline-address" list="flights-airline" ><br><br>
+            <datalist class="mydatalist" id="flights-airline"></datalist>
+            <btn class="btn btn-primary" id="register-flight">Register Flight</btn>
         </div>
 
         <br>
