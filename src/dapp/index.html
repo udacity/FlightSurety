@@ -88,7 +88,8 @@
             <label class="form">Passenger's Address</label><br>
             <input class="myinput" type="text" id="passenger" placeholder="0x123456789..."> <br><br>
             <label class="form">Flight</label><br>
-            <input class="myinput" type="text" id="flight" placeholder="KUL123"> <br><br>
+            <input class="myinput" type="text" id="flight" list="flights-insurance"> <br><br>
+            <datalist class="mydatalist" id="flights-insurance"></datalist>
             <label class="form">Insurance</label><br>
             <input class="myinput" type="number" id="insurance" placeholder="ETH"><br><br>
             <btn class="btn btn-primary" id="Purchase">Purchase Insurance</btn>
@@ -104,7 +105,7 @@
             <label class="form">Flight</label><br>
             <input class="myinput" type="text" id="flight" placeholder="KUL123"> <br><br>
             <label class="form">Insurance</label><br>
-            <input class="myinput" type="number" id="insurance" readonly placeholder="ETH"><br><br>
+            <input class="myinput" type="number" id="insurance" placeholder="ETH"><br><br>
             <btn class="btn btn-primary" id="Purchase">Show Purchased Fund</btn>
         </div>
 

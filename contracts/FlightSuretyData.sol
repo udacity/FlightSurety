@@ -32,8 +32,8 @@ contract FlightSuretyData {
     mapping(address => Airline) private airlines;
     uint256 private airlineCount;
 
-    address private testAddress;
-    uint256 private testValue;
+        /* testAddress = msg.sender; */
+        /* testValue = msg.value; */
 
     // Clients  Obj
     struct Clients
@@ -227,12 +227,12 @@ contract FlightSuretyData {
     /********************************************************************************************/
     /*                                     SMART CONTRACT FUNCTIONS                             */
     /********************************************************************************************/
-    function getCredit ( address _address ) public view returns (uint256)
+    function getCredit (address _address) public view returns (uint256)
     {
         return passengers[_address].credit;
     }
 
-    function getInsurance (string flightID, address _address ) public view returns (uint256)
+    function getInsurance (string flightID, address _address) public view returns (uint256)
     {
         return passengers[_address].insurance[flightID];
     }
@@ -311,7 +311,7 @@ contract FlightSuretyData {
                             )
                             external
                             payable
-                            /* requireIsOperational */
+                            requireIsOperational
                             returns (uint256)
     {
         require(msg.sender == tx.origin, "Contracts  are not allowed!");
@@ -323,7 +323,7 @@ contract FlightSuretyData {
         // CHECK & EFFECT
         uint256 curr_value = passengers[msg.sender].insurance[flightID];
         uint256 rest_value;
-        if ((msg.value.add(curr_value)) > MAX_INSURANCE_LIMIT)
+        if ((msg.value + curr_value) > MAX_INSURANCE_LIMIT)
             rest_value = MAX_INSURANCE_LIMIT.sub(curr_value);
         else
             rest_value = msg.value;
@@ -413,29 +413,27 @@ contract FlightSuretyData {
 
         // authorize caller when it is funded
         authorizedContracts[msg.sender] = true;
-        testAddress = msg.sender;
-        testValue = msg.value;
     }
 
-    function getCurrAddress
-                        (
-                        )
-                        public
-                        view
-                        returns(address)
-    {
-        return testAddress;
-    }
+    /* function getCurrAddress */
+    /*                     ( */
+    /*                     ) */
+    /*                     public */
+    /*                     view */
+    /*                     returns(address) */
+    /* { */
+    /*     return testAddress; */
+    /* } */
 
-    function getCurrVal
-                        (
-                        )
-                        public
-                        view
-                        returns(uint256)
-    {
-        return testValue;
-    }
+    /* function getCurrVal */
+    /*                     ( */
+    /*                     ) */
+    /*                     public */
+    /*                     view */
+    /*                     returns(uint256) */
+    /* { */
+    /*     return testValue; */
+    /* } */
 
     function getFunds
                             (

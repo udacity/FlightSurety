@@ -14,6 +14,7 @@ export default class Contract {
         this.initialize(callback);
         // this.owner = null;
         this.airlines = [];
+        this.flights = [];
         this.passengers = [];
         this.appAddress = config.appAddress;
     }
@@ -40,14 +41,17 @@ export default class Contract {
     }
 
     updateDataLists(elements, listings){
+        var box = document.getElementById(elements);
+        while(box.firstChild)
+            box.removeChild(box.lastChild);
 
-        var funded_airline = document.getElementById(elements);
         listings.forEach(function(item){
             var option = document.createElement('option');
             option.value = item;
-            funded_airline.appendChild(option);
+            box.appendChild(option);
         });
     }
+
     async registerAirline(airline, name, callback){
         let self = this;
 
@@ -55,7 +59,7 @@ export default class Contract {
             airlineAddress: airline,
             name: name,
             sender: self.owner
-        }
+        };
 
         console.log("payload.airlineAddress:", payload.airlineAddress);
         console.log("payload.name:", payload.name);
@@ -101,7 +105,7 @@ export default class Contract {
             airlineAddress: airline,
             fund: fund_wei,
             sum: -10
-        }
+        };
 
         self.flightSuretyData.methods
             .fund()
@@ -124,21 +128,19 @@ export default class Contract {
                         callback(error, payload);
                     });
 
-                    self.flightSuretyData.methods
-                        .getCurrAddress()
-                        .call((error,result) => {
-                            console.log("address:" + result);
-                        });
+                    // self.flightSuretyData.methods
+                    //     .getCurrAddress()
+                    //     .call((error,result) => {
+                    //         console.log("address:" + result);
+                    //     });
 
-                    self.flightSuretyData.methods
-                        .getCurrVal()
-                        .call((error,result) => {
-                            console.log("Value: " + result);
-                        });
+                    // self.flightSuretyData.methods
+                    //     .getCurrVal()
+                    //     .call((error,result) => {
+                    //         console.log("Value: " + result);
+                    //     });
                 }
             });
-
-
     }
 
     async registerFlight(airline, flight, destination, callback){
@@ -146,13 +148,13 @@ export default class Contract {
 
         let payload = {
             airlineAddress: airline,
-            location: destination,
+            destination: destination,
             flight: flight,
             timestamp: Math.floor(Date.now() / 1000)
-        }
+        };
 
         self.flightSuretyApp.methods
-            .registerFlight(payload.flight, payload.location, payload.timestamp)
+            .registerFlight(payload.flight, payload.destination, payload.timestamp)
             .call((error, result) => {
                 if (error)
                 {
@@ -161,13 +163,50 @@ export default class Contract {
                 }
                 else
                 {
-                    console.log("flight registration successfull!")
+                    self.flights.push(payload.flight);
+                    this.updateDataLists('flights-insurance', this.flights);
+                    console.log("flight registration successful!");
+                    callback(error, payload);
                 }
             });
     }
 
+    async purchaseInsurance(passenger, flight, amount, callback) {
+        let self = this;
+        let amount_wei = this.web3.utils.toWei(amount.toString(), "ether");
 
+        let payload = {
+            passenger : passenger,
+            flight : flight,
+            fund : amount_wei,
+            insurance: "0"
+        };
+
+        self.flightSuretyData.methods
+            .buy(payload.flight)
+            .send({from: payload.passenger, value: payload.fund, gas: 5000000, gasPrice: 20000000}, (error, result) => {
+                if (error)
+                {
+                    console.log("flight: " + payload.flight);
+                    console.log("passenger: " + payload.passenger);
+                    console.log("fund: " + payload.fund);
+                    console.log("error while purchasing insurance: " +  error);
+                    callback(error, payload);
+                }
+                else
+                {
+                    console.log("insurance purchased!");
+                    self.flightSuretyData.methods
+                        .getInsurance(flight, passenger)
+                        .call((error, result) => {
+                            console.log("Result: ", result);
+                            payload.insurance = result;
+                        });
+                    callback(error, payload);
+                }
+            });
     }
+
     isOperational(callback) {
        let self = this;
        self.flightSuretyApp.methods
@@ -181,7 +220,8 @@ export default class Contract {
             airline: self.airlines[0],
             flight: flight,
             timestamp: Math.floor(Date.now() / 1000)
-        }
+        };
+
         self.flightSuretyApp.methods
             .fetchFlightStatus(payload.airline, payload.flight, payload.timestamp)
             .send({ from: self.owner}, (error, result) => {
