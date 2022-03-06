@@ -30,7 +30,6 @@ contract FlightSuretyData {
         mapping(address => bool) votedFlag;
     }
     mapping(address => Airline) private airlines;
-    mapping(uint => Airline) private airlines2;
     uint256 private airlineCount;
 
     address private testAddress;
@@ -39,29 +38,13 @@ contract FlightSuretyData {
     // Clients  Obj
     struct Clients
     {
-        bool isInsured;
-        uint256 insurance;
+        /* bool isInsured; */
+        /* uint256 insurance; */
+        mapping (string => uint256) insurance;
         uint256 credit;
     }
-
-    // Flights obj, track flights with their IDs
-    struct Flights
-    {
-        uint256 status;
-        uint256 departure;
-        uint256 price;
-        mapping(address => Clients) passengers;
-        // since we can't iterate through maps, we have to keep track
-        // of number of addresses separately
-        address[100] passengersAddress;
-        uint256 idxPassengers;
-    }
-
-    // map flights with its ID(string)
-    mapping(string => Flights) flights;
-    address private test;
-
-
+    mapping(address => Clients) private passengers;
+    address[] public passengersAddress;
 
     /********************************************************************************************/
     /*                                       EVENT DEFINITIONS                                  */
@@ -80,7 +63,6 @@ contract FlightSuretyData {
         operational = true;
         airlineCount = 1;
         contractOwner = msg.sender;
-        test = msg.sender;
         authorizedContracts[msg.sender] = true;
 
         //register first airline
@@ -133,13 +115,7 @@ contract FlightSuretyData {
 
     modifier requireIsAuthorized()
     {
-        // require(authorizedContracts[msg.sender], string(abi.encodePacked("Contract ", addressToString(test), " is not authorized")));
-       if (authorizedContracts[test])
-       {
-            require(authorizedContracts[msg.sender], string(abi.encodePacked("TRUE", " Contract msg.sender: ", addressToString(msg.sender)," init: ", addressToString(test), " is not authorized")));
-       }
-        else
-            require(authorizedContracts[msg.sender], string(abi.encodePacked("FALSE", " Contract msg.sender: ", addressToString(msg.sender)," init: ", addressToString(test), " is not authorized")));
+        require(authorizedContracts[msg.sender], string(abi.encodePacked("TRUE", " Contract msg.sender: ", addressToString(msg.sender)," init: ", addressToString(msg.sender), " is not authorized")));
         _;
     }
 
@@ -154,18 +130,6 @@ contract FlightSuretyData {
         require(airlines[airlineAddress].isMember == false, string(abi.encodePacked("Airline ", addressToString(airlineAddress), " is already a member!")));
 
         _;  // All modifiers require an "_" which indicates where the function body will be added
-    }
-
-    modifier requireIsNotInsured(string flightID, address _address)
-    {
-      require(flights[flightID].passengers[_address].isInsured == false, "Address already has insurance for this flight");
-      _;
-    }
-
-    modifier requireIsInsured(string flightID, address _address)
-    {
-      require(flights[flightID].passengers[_address].isInsured == true, "Address is not not (yet) insured!");
-      _;
     }
 
     modifier requireIsRegistered()
@@ -263,14 +227,14 @@ contract FlightSuretyData {
     /********************************************************************************************/
     /*                                     SMART CONTRACT FUNCTIONS                             */
     /********************************************************************************************/
-    function getCredit (string flightID, address passenger ) public view returns (uint256)
+    function getCredit ( address _address ) public view returns (uint256)
     {
-        return flights[flightID].passengers[passenger].credit;
+        return passengers[_address].credit;
     }
 
-    function getInsurance (string flightID, address passenger ) public view returns (uint256)
+    function getInsurance (string flightID, address _address ) public view returns (uint256)
     {
-        return flights[flightID].passengers[passenger].insurance;
+        return passengers[_address].insurance[flightID];
     }
 
     function getVotes (address airlineAddress) public view returns (uint256)
@@ -337,6 +301,7 @@ contract FlightSuretyData {
         voteBox[candidate] = voteBox[candidate].add(1);
     }
 
+
    /**
     * @dev Buy insurance for a flight
     */
@@ -346,33 +311,28 @@ contract FlightSuretyData {
                             )
                             external
                             payable
-                            requireIsOperational
-                            requireIsNotInsured(flightID, msg.sender)
+                            /* requireIsOperational */
                             returns (uint256)
     {
         require(msg.sender == tx.origin, "Contracts  are not allowed!");
         require(msg.value > 0, "Insufficient amount in your Wallet!");
 
-        flights[flightID].passengers[msg.sender] = Clients({isInsured : true, insurance : 0, credit : 0});
-
-        flights[flightID].passengersAddress[flights[flightID].idxPassengers] = msg.sender;
-        flights[flightID].idxPassengers++;
+        passengers[msg.sender] = Clients({credit : 0});
+        passengersAddress.push(msg.sender);
 
         // CHECK & EFFECT
-        if (msg.value > MAX_INSURANCE_LIMIT)
-        {
-            //TRANSFER & UPDATE
-            msg.sender.transfer(MAX_INSURANCE_LIMIT);
-            flights[flightID].passengers[msg.sender].insurance = MAX_INSURANCE_LIMIT;
-        }
+        uint256 curr_value = passengers[msg.sender].insurance[flightID];
+        uint256 rest_value;
+        if ((msg.value.add(curr_value)) > MAX_INSURANCE_LIMIT)
+            rest_value = MAX_INSURANCE_LIMIT.sub(curr_value);
         else
-        {
-            uint256 value = msg.value;
-            //TRANSFER & UPDATE
-            address(this).transfer(value);
-            flights[flightID].passengers[msg.sender].insurance = value;
-        }
-        return flights[flightID].passengers[msg.sender].insurance;
+            rest_value = msg.value;
+
+        //TRANSFER & UPDATE
+        msg.sender.transfer(rest_value);
+        passengers[msg.sender].insurance[flightID] += rest_value;
+
+        return passengers[msg.sender].insurance[flightID];
     }
 
     /**
@@ -380,8 +340,7 @@ contract FlightSuretyData {
     */
     function creditInsurees
                                 (
-                                  string flightID,
-                                  address passenger
+                                  string flightID
                                 )
                                 external
                                 requireIsOperational
@@ -389,19 +348,22 @@ contract FlightSuretyData {
 
     {
         // CHECK
-        require(flights[flightID].idxPassengers > 0, "There is no passengers registered");
-        for(uint256 i = 0; i < flights[flightID].idxPassengers; i++)
+        for(uint256 i = 0; i < passengersAddress.length; i++)
         {
+            address _address = passengersAddress[i];
             // CHECK
             // get the current data
-            uint256 currCredit = flights[flightID].passengers[passenger].credit;
-            uint256 currInsurance = flights[flightID].passengers[passenger].insurance;
+            /* uint256 currCredit = flights[flightID].passengers[passenger].credit; */
+            /* uint256 currInsurance = flights[flightID].passengers[passenger].insurance; */
+
+            uint256 currCredit = passengers[_address].credit;
+            uint256 currInsurance = passengers[_address].insurance[flightID];
 
             // EFFECT
-            flights[flightID].passengers[passenger].insurance = 0;
+            passengers[_address].insurance[flightID] = 0;
 
             //TRANSFER
-            flights[flightID].passengers[passenger].credit = currCredit + currInsurance + currInsurance.div(2);
+            passengers[_address].credit = currCredit + currInsurance + currInsurance.div(2);
         }
     }
 
@@ -412,21 +374,22 @@ contract FlightSuretyData {
     */
     function pay
                             (
-                             string flightID
                             )
                             external
                             payable
                             requireIsOperational
-                            requireIsInsured(flightID, msg.sender)
     {
         // CHECK & EFFECT
         require(msg.sender == tx.origin, "contracts are not allowed");
-        require(flights[flightID].passengers[msg.sender].credit > 0, "No credit available");
-        require(address(this).balance > credit, "contract does not have enough funds");
+        /* require(flights[flightID].passengers[msg.sender].credit > 0, "No credit available"); */
+        require(passengers[msg.sender].credit > 0, "No credit available");
+        require(address(this).balance >= credit, "contract does not have enough funds");
 
         // EFFECT
-        uint256 credit = flights[flightID].passengers[msg.sender].credit;
-        flights[flightID].passengers[msg.sender].credit = 0;
+        uint256 credit = passengers[msg.sender].credit;
+        /* uint256 credit = flights[flightID].passengers[msg.sender].credit; */
+        /* flights[flightID].passengers[msg.sender].credit = 0; */
+        passengers[msg.sender].credit = 0;
 
         //TRANSFER
         msg.sender.transfer(credit);
@@ -458,6 +421,7 @@ contract FlightSuretyData {
                         (
                         )
                         public
+                        view
                         returns(address)
     {
         return testAddress;
@@ -467,6 +431,7 @@ contract FlightSuretyData {
                         (
                         )
                         public
+                        view
                         returns(uint256)
     {
         return testValue;
@@ -477,6 +442,7 @@ contract FlightSuretyData {
                              address account
                             )
                             public
+                            view
                             requireIsOperational
                             returns(uint256)
     {

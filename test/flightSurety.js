@@ -260,9 +260,8 @@ contract('Flight Surety Tests', async (accounts) => {
         // ACT
         try {
             insurance = await config.flightSuretyData.getInsurance.call(testFirstFlightID, testPassenger);
-            await config.flightSuretyData.creditInsurees(testFirstFlightID, testPassenger);
-            // await config.flightSuretyData.creditInsurees(testFirstFlightID);
-            credit = await config.flightSuretyData.getCredit.call(testFirstFlightID, testPassenger);
+            await config.flightSuretyData.creditInsurees(testFirstFlightID);
+            credit = await config.flightSuretyData.getCredit.call(testPassenger);
 
         }
         catch(e) {
@@ -274,7 +273,6 @@ contract('Flight Surety Tests', async (accounts) => {
 
     it("(passenger) can withdraw the credit if the flight is late", async () => {
         //ARRANGE
-        let paidAmount;
         let initialCredit;
         let finalCredit;
         let initialBalance;
@@ -283,13 +281,13 @@ contract('Flight Surety Tests', async (accounts) => {
 
         // ACT
         try {
-             initialCredit = await config.flightSuretyData.getCredit.call(testFirstFlightID, testPassenger);
+             initialCredit = await config.flightSuretyData.getCredit.call(testPassenger);
              initialBalance = await web3.eth.getBalance(testPassenger);
 
-             await config.flightSuretyData.pay(testFirstFlightID, {from: testPassenger});
+             await config.flightSuretyData.pay({from: testPassenger});
 
              finalBalance = await web3.eth.getBalance(testPassenger);
-             finalCredit = await config.flightSuretyData.getCredit.call(testFirstFlightID, testPassenger);
+             finalCredit = await config.flightSuretyData.getCredit.call(testPassenger);
              finalInsurance = await config.flightSuretyData.getInsurance.call(testFirstFlightID, testPassenger);
         }
         catch(e) {
