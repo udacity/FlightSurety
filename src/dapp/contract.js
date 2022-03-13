@@ -21,28 +21,33 @@ export default class Contract {
         this.appAddress = config.appAddress;
     }
 
-    initialize = async(callback) => {
+    initialize(callback) {
         this.web3.eth.getAccounts((error, accts) => {
 
             let self = this;
             this.owner = accts[0];
-            // we need to fund the owner so that it can take part with the contract
-            this.fund(this.owner,0.1);
             console.log("Owner: " + this.owner);
+            console.log("appAddress: " + this.appAddress);
             let counter = 1;
 
-            // TODO: register 5 airines properly
-            while(this.airlines.length < 5) {
-                this.airlines.push(accts[counter++]);
+            // TODO: register 2 airlines properly
+            this.airlines.push(self.appAddress);
+            while(this.airlines.length < 2) {
+                let curr_accts = accts[counter++]
+
+                self.flightSuretyApp.methods
+                .registerAirline(curr_accts, "airline" + (counter))
+                .send({from: this.owner, gas: 5000000, gasPrice: 20000000}, (error, result) => {
+                });
+                this.airlines.push(curr_accts);
             }
 
-            // TODO:register 5 passengers properly
-            while(this.passengers.length < 5) {
+            // TODO:register 2 passengers properly
+            while(this.passengers.length < 2) {
                 this.passengers.push(accts[counter++]);
             }
 
 
-            // TODO: register 20 oracles with an ID
             self.flightSuretyApp.methods
             .getOracleRegistrationFee().call({from:this.owner}, (error, fee) => {
                 console.log("oracle fee: " + fee);
@@ -56,6 +61,12 @@ export default class Contract {
                     this.oracles.push(accts[counter++]);
                 }
             });
+
+            this.updateDataLists('funded-airline', this.airlines);
+            this.updateDataLists('passenger-insurance', this.passengers);
+            this.updateDataLists('passenger-purchase', this.passengers);
+            this.updateDataLists('passenger-withdraw', this.passengers);
+            callback();
 
             });
     }
@@ -174,7 +185,7 @@ export default class Contract {
                 {
                     self.flights.push(payload.flight);
                     this.updateDataLists('flights-insurance', this.flights);
-                    this.updateDataLists('flights-insurance', this.flights);
+                    this.updateDataLists('flight-oracle', this.flights);
                     console.log("flight registration successful!");
                     callback(error, payload);
                 }
@@ -217,6 +228,44 @@ export default class Contract {
             });
     }
 
+
+    async checkInsurance(passenger, flight, callback) {
+        let self = this;
+
+        let payload = {
+            passenger : passenger,
+            flight : flight,
+            insurance: "0"
+        };
+
+        self.flightSuretyData.methods
+            .getInsurance(flight, passenger)
+            .call((error, result) => {
+                console.log("Result: ", result);
+                payload.insurance = result;
+                callback(error, payload);
+            });
+    }
+
+    async withdraw(passenger, flight, callback) {
+        let self = this;
+
+        let payload = {
+            passenger : passenger,
+            flight : flight,
+            credit: "0"
+        };
+
+        self.flightSuretyData.methods
+            .pay()
+            .call((error, result) => {
+                if(!error)
+                {
+                    callback(error, payload);
+                }
+            });
+    }
+
     isOperational(callback) {
        let self = this;
        self.flightSuretyApp.methods
@@ -238,4 +287,18 @@ export default class Contract {
                 callback(error, payload);
             });
     }
+
+    viewFlightStatus(airline, flight, callback) {
+        let self = this;
+        let payload = {
+            airline: airline,
+            flight: flight
+        }
+        self.flightSuretyApp.methods
+            .viewFlightStatus(payload.flight, payload.airline)
+            .call({ from: self.accounts[0]}, (error, result) => {
+                callback(error, result);
+            });
+    }
+
 }

@@ -60,14 +60,48 @@ import './flightsurety.css';
             });
         });
 
-        DOM.elid('submit-oracle').addEventListener('click', () => {
-            let flight = DOM.elid('flight-number').value;
+        DOM.elid('ShowPurchase').addEventListener('click', async() => {
+            let passenger = DOM.elid('passenger').value;
+            let flight = DOM.elid('flight').value;
+
+            // purchase insurance for a flight
+            contract.checkInsurance(passenger, flight, (error, result) => {
+                display('Passenger', 'show insurance', [{label: 'show insurance', error: error, value:result.passenger + ' : ' +  result.flight + ' : ' +  result.insurance}]);
+            });
+
+            // DOM.elid('insurance').value = result.insurance.toString();
+        });
+
+
+        DOM.elid('Withdraw').addEventListener('click', async() => {
+            let passenger = DOM.elid('passenger').value;
+            let flight = DOM.elid('flight').value;
+
+            // purchase insurance for a flight
+            contract.withdraw(passenger, flight, (error, result) => {
+                if(error)
+                {
+                    console.log(error);
+                    alert("Error! Could not withdraw the credit.");
+                }
+                else
+                {
+                    display('Passenger', 'compensated', [{label: 'withdrawn:', error: error, value:result.passenger + ' : ' +  result.flight + ' : ' +  result.compensation}]);
+                }
+            });
+
+
+        });
+
+        DOM.elid('check-oracle').addEventListener('click', () => {
+            let flight = DOM.elid('flight-oracle').value;
 
             // Write transaction
             contract.fetchFlightStatus(flight, (error, result) => {
                 display('Oracles', 'Trigger oracles', [ { label: 'Fetch Flight Status', error: error, value: result.flight + ' ' + result.timestamp} ]);
             });
         });
+
     });
 })();
 

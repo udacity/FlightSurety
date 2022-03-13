@@ -250,9 +250,9 @@ contract FlightSuretyData {
                             //contract must be operational
                             requireIsOperational
                             // caller must be authorized
-                            requireIsAuthorized
+                            // requireIsAuthorized
                             // caller must already paid the fund
-                            requireIsFunded
+                            // requireIsFunded
                             // airline must not already be a member
                             requireIsNotYetMember(airlineAddress)
                             returns(bool)
