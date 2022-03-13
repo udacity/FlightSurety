@@ -383,6 +383,14 @@ contract FlightSuretyApp {
         return random;
     }
 
+    function getOracleRegistrationFee
+                        (
+                        )
+                        public
+                        returns(uint256)
+    {
+        return REGISTRATION_FEE;
+    }
 // endregion
 
 }

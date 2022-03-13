@@ -32,14 +32,9 @@ contract FlightSuretyData {
     mapping(address => Airline) private airlines;
     uint256 private airlineCount;
 
-        /* testAddress = msg.sender; */
-        /* testValue = msg.value; */
-
     // Clients  Obj
     struct Clients
     {
-        /* bool isInsured; */
-        /* uint256 insurance; */
         mapping (string => uint256) insurance;
         uint256 credit;
     }
@@ -255,9 +250,9 @@ contract FlightSuretyData {
                             //contract must be operational
                             requireIsOperational
                             // caller must be authorized
-                            // requireIsAuthorized
+                            requireIsAuthorized
                             // caller must already paid the fund
-                            // requireIsFunded
+                            requireIsFunded
                             // airline must not already be a member
                             requireIsNotYetMember(airlineAddress)
                             returns(bool)
@@ -353,8 +348,6 @@ contract FlightSuretyData {
             address _address = passengersAddress[i];
             // CHECK
             // get the current data
-            /* uint256 currCredit = flights[flightID].passengers[passenger].credit; */
-            /* uint256 currInsurance = flights[flightID].passengers[passenger].insurance; */
 
             uint256 currCredit = passengers[_address].credit;
             uint256 currInsurance = passengers[_address].insurance[flightID];
@@ -381,14 +374,11 @@ contract FlightSuretyData {
     {
         // CHECK & EFFECT
         require(msg.sender == tx.origin, "contracts are not allowed");
-        /* require(flights[flightID].passengers[msg.sender].credit > 0, "No credit available"); */
         require(passengers[msg.sender].credit > 0, "No credit available");
         require(address(this).balance >= credit, "contract does not have enough funds");
 
         // EFFECT
         uint256 credit = passengers[msg.sender].credit;
-        /* uint256 credit = flights[flightID].passengers[msg.sender].credit; */
-        /* flights[flightID].passengers[msg.sender].credit = 0; */
         passengers[msg.sender].credit = 0;
 
         //TRANSFER
@@ -408,32 +398,12 @@ contract FlightSuretyData {
                             requireIsOperational
     {
         uint256 currentFunds = airlines[msg.sender].fundAmounts;
-        /* airlines[msg.sender].fundAmounts = currentFunds.add(msg.value); */
         airlines[msg.sender].fundAmounts = currentFunds + msg.value;
 
         // authorize caller when it is funded
         authorizedContracts[msg.sender] = true;
     }
 
-    /* function getCurrAddress */
-    /*                     ( */
-    /*                     ) */
-    /*                     public */
-    /*                     view */
-    /*                     returns(address) */
-    /* { */
-    /*     return testAddress; */
-    /* } */
-
-    /* function getCurrVal */
-    /*                     ( */
-    /*                     ) */
-    /*                     public */
-    /*                     view */
-    /*                     returns(uint256) */
-    /* { */
-    /*     return testValue; */
-    /* } */
 
     function getFunds
                             (

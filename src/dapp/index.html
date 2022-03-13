@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <title>FlightSurety</title>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.1.1/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="icon" type="image/x-icon" href="favicon.ico">
+    <!-- <link rel="icon" type="image/x-icon" href="favicon.ico"> -->
 </head>
 
 <body>
@@ -103,10 +103,11 @@
             <label class="form">Passenger's Address</label><br>
             <input class="myinput" type="text" id="passenger" placeholder="0x0123456789..."> <br><br>
             <label class="form">Flight</label><br>
-            <input class="myinput" type="text" id="flight" placeholder="KUL123"> <br><br>
+            <input class="myinput" type="text" id="flight" list="flights-insurance"> <br><br>
+            <datalist class="mydatalist" id="flights-insurance"></datalist>
             <label class="form">Insurance</label><br>
-            <input class="myinput" type="number" id="insurance" placeholder="ETH"><br><br>
-            <btn class="btn btn-primary" id="Purchase">Show Purchased Fund</btn>
+            <input class="myinput" type="number" id="insurance" placeholder="ETH" readonly><br><br>
+            <btn class="btn btn-primary" id="ShowPurchase">Show Purchased Fund</btn>
         </div>
 
         <br>

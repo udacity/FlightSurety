@@ -16,28 +16,48 @@ export default class Contract {
         this.airlines = [];
         this.flights = [];
         this.passengers = [];
+        this.oracles = [];
+
         this.appAddress = config.appAddress;
     }
 
-    initialize(callback) {
+    initialize = async(callback) => {
         this.web3.eth.getAccounts((error, accts) => {
 
+            let self = this;
             this.owner = accts[0];
             // we need to fund the owner so that it can take part with the contract
             this.fund(this.owner,0.1);
             console.log("Owner: " + this.owner);
             let counter = 1;
 
+            // TODO: register 5 airines properly
             while(this.airlines.length < 5) {
                 this.airlines.push(accts[counter++]);
             }
 
+            // TODO:register 5 passengers properly
             while(this.passengers.length < 5) {
                 this.passengers.push(accts[counter++]);
             }
-            this.updateDataLists('funded-airline', this.airlines);
-            callback();
-        });
+
+
+            // TODO: register 20 oracles with an ID
+            self.flightSuretyApp.methods
+            .getOracleRegistrationFee().call({from:this.owner}, (error, fee) => {
+                console.log("oracle fee: " + fee);
+                while(this.oracles.length < 20) {
+                    let curr_accts = accts[counter++]
+                    self.flightSuretyApp.methods
+                    .registerOracle()
+                    .send({from: curr_accts, value:fee, gas: 5000000, gasPrice: 20000000});
+                    console.log("registering oracle " + curr_accts + " at " + fee + " ETH");
+                    // register the oracles
+                    this.oracles.push(accts[counter++]);
+                }
+            });
+
+            });
     }
 
     updateDataLists(elements, listings){
@@ -125,20 +145,9 @@ export default class Contract {
                         payload.sum = result;
                         console.log("addresses: " + payload.airlineAddress);
                         console.log("Sum Fund: " + payload.sum);
-                        callback(error, payload);
+                        if(callback)callback(error, payload);
                     });
 
-                    // self.flightSuretyData.methods
-                    //     .getCurrAddress()
-                    //     .call((error,result) => {
-                    //         console.log("address:" + result);
-                    //     });
-
-                    // self.flightSuretyData.methods
-                    //     .getCurrVal()
-                    //     .call((error,result) => {
-                    //         console.log("Value: " + result);
-                    //     });
                 }
             });
     }
@@ -164,6 +173,7 @@ export default class Contract {
                 else
                 {
                     self.flights.push(payload.flight);
+                    this.updateDataLists('flights-insurance', this.flights);
                     this.updateDataLists('flights-insurance', this.flights);
                     console.log("flight registration successful!");
                     callback(error, payload);
