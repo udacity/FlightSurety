@@ -231,8 +231,7 @@ export default class Contract {
                             payload.flight = flight;
                             console.log("passenger: ", payload.passenger);
                             console.log("flight: ", payload.flight);
-                            console.log("Result2: ", payload.insurance);
-                            console.log("Result: ", result);
+                            console.log("insurance: ", payload.insurance);
                             callback(error, payload);
                         });
                 }
@@ -252,9 +251,12 @@ export default class Contract {
         self.flightSuretyData.methods
             .getInsurance(flight, passenger)
             .call((error, result) => {
-                console.log("Result: ", result);
-                document.getElementById("show-insurance").value = result;
+                if (error)
+                    console.log("Error: ", error);
+
                 payload.insurance = result;
+                console.log("purchased amount: ", result);
+                document.getElementById("show-insurance").value = result;
                 callback(error, payload);
             });
     }

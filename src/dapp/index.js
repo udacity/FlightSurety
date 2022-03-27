@@ -61,7 +61,7 @@ import './flightsurety.css';
 
         DOM.elid('ShowPurchase').addEventListener('click', async() => {
             let passenger = DOM.elid('passenger').value;
-            let flight = DOM.elid('flight').value;
+            let flight = DOM.elid('flight-check').value;
 
             // purchase insurance for a flight
             contract.checkInsurance(passenger, flight, (error, result) => {
