@@ -7,7 +7,6 @@ import './flightsurety.css';
 (async() => {
 
     let result = null;
-
     let contract = new Contract('localhost', () => {
 
         // Read transaction
@@ -49,9 +48,9 @@ import './flightsurety.css';
             });
         });
 
-        DOM.elid('Purchase').addEventListener('click', async() => {
+        DOM.elid('purchase').addEventListener('click', async() => {
             let passenger = DOM.elid('passenger').value;
-            let flight = DOM.elid('flight').value;
+            let flight = DOM.elid('flight-ins').value;
             let amount = DOM.elid('insurance').value;
 
             // purchase insurance for a flight
@@ -94,7 +93,7 @@ import './flightsurety.css';
         });
 
         DOM.elid('check-oracle').addEventListener('click', () => {
-            let flight = DOM.elid('flight-oracle').value;
+            let flight = DOM.elid('flight').value;
 
             // Write transaction
             contract.fetchFlightStatus(flight, (error, result) => {
@@ -119,3 +118,4 @@ function display(title, description, results) {
     });
     displayDiv.append(section);
 }
+

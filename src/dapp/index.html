@@ -33,37 +33,12 @@
         <h5 class="form-header" data-component="header">
         Check specific flight status 
         </h5>
-        <input class="myinput" type="text" id="flight-oracle" placeholder="KUL123"> <br><br>
+        <input class="myinput" type="text" id="flight" list="flight-oracle"> <br><br>
+        <datalist class="mydatalist" id="flight-oracle"></datalist>
         <div class="check-oracle">
         <btn class="btn btn-primary" id="check-oracle">Submit Oracle</btn>
         </div>
         <br>
-
-        <!--<h5 class="form-header" data-component="header">
-        Get all current oracle results
-        </h5>
-        </div>
-        <div class="form-row top-20" id='statusButton'>
-            <div class="form-group col-md-1.1">
-            <button class="btn btn-primary" value="10">On Time</button>
-            </div>
-            <div class="form-group col-md-1.1">
-            <button class="btn btn-primary" value="20">Late Airline</button>
-            </div>
-            <div class="form-group col-md-1.1">
-            <button class="btn btn-primary" value="30">Late Weather</button>
-            </div>
-            <div class="form-group col-md-1.1">
-            <button class="btn btn-primary" value="40">Late Technical</button>
-            </div>
-            <div class="form-group col-md-1.1">
-            <button class="btn btn-primary" value="50">Late Other</button>
-            </div>
-            <div class="form-group col-md-1.1">
-            <button class="btn btn-primary" value="60">Unknown</button>
-            </div>
-        </div>
-        <br> -->
 
         <h2 class="form-header" data-component="header">
             Airlines
@@ -124,15 +99,15 @@
         Purchase insurance of a registered flight (max. 1 ETH per flight)
         </h5>
         <div class="passengerPurchaseInsurance">
-            <label class="form">Passenger><br>
+            <label class="form">Passenger<br>
             <input class="myinput" type="text" id="passenger" list="passenger-insurance"><br><br>
             <datalist class="mydatalist" id="passenger-insurance"></datalist>
             <label class="form">Flight</label><br>
-            <input class="myinput" type="text" id="flight" list="flights-insurance"><br><br>
+            <input class="myinput" type="text" id="flight-ins" list="flights-insurance"><br><br>
             <datalist class="mydatalist" id="flights-insurance"></datalist>
             <label class="form">Insurance</label><br>
             <input class="myinput" type="number" id="insurance" placeholder="ETH"><br><br>
-            <btn class="btn btn-primary" id="Purchase">Purchase Insurance</btn>
+            <btn class="btn btn-primary" id="purchase">Purchase Insurance</btn>
         </div>
 
         <br>
@@ -140,14 +115,14 @@
         Check how much insurance was purchased for the flight
         </h5>
         <div class="passengerCheckInsurance">
-            <label class="form">Passenger><br>
+            <label class="form">Passenger<br>
             <input class="myinput" type="text" id="passenger" list="passenger-purchase"><br><br>
             <datalist class="mydatalist" id="passenger-purchase"></datalist>
             <label class="form">Flight</label><br>
             <input class="myinput" type="text" id="flight" list="flights-insurance"> <br><br>
             <datalist class="mydatalist" id="flights-insurance"></datalist>
             <label class="form">Insurance</label><br>
-            <input class="myinput" type="number" id="insurance" placeholder="ETH" readonly><br><br>
+            <input class="myinput" type="number" id="show-insurance" placeholder="ETH" readonly><br><br>
             <btn class="btn btn-primary" id="ShowPurchase">Show Purchased Fund</btn>
         </div>
 
@@ -156,7 +131,7 @@
         In case the flight was delayed, passenger can withdraw the fund (1.5x the insurance paid)
         </h5>
         <div class="passengerWithdrawFund">
-            <label class="form">Passenger><br>
+            <label class="form">Passenger<br>
             <input class="myinput" type="text" id="passenger" list="passenger-withdraw" > <br><br>
             <datalist class="mydatalist" id="passenger-withdraw"></datalist>
             <label class="form">Flight</label><br>

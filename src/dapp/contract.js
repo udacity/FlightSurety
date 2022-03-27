@@ -12,8 +12,8 @@ export default class Contract {
         this.flightSuretyApp = new this.web3.eth.Contract(FlightSuretyApp.abi, config.appAddress);
         this.flightSuretyData = new this.web3.eth.Contract(FlightSuretyData.abi, config.dataAddress);
         this.initialize(callback);
-        // this.owner = null;
         this.airlines = [];
+        this.fundedAirlines = [];
         this.flights = [];
         this.passengers = [];
         this.oracles = [];
@@ -40,6 +40,8 @@ export default class Contract {
                 .send({from: this.owner, gas: 5000000, gasPrice: 20000000}, (error, result) => {
                 });
                 this.airlines.push(curr_accts);
+                this.fund(curr_accts,10);
+                this.fundedAirlines.push(curr_accts);
             }
 
             // TODO:register 2 passengers properly
@@ -66,6 +68,8 @@ export default class Contract {
             this.updateDataLists('passenger-insurance', this.passengers);
             this.updateDataLists('passenger-purchase', this.passengers);
             this.updateDataLists('passenger-withdraw', this.passengers);
+            this.updateDataLists('flights-insurance', this.flights);
+            this.updateDataLists('flight-oracle', this.flights);
             callback();
 
             });
@@ -175,7 +179,7 @@ export default class Contract {
 
         self.flightSuretyApp.methods
             .registerFlight(payload.flight, payload.destination, payload.timestamp)
-            .call((error, result) => {
+            .call({from: payload.airlineAddress}, (error, result) => {
                 if (error)
                 {
                     console.log("fund error " +  error);
@@ -220,10 +224,17 @@ export default class Contract {
                     self.flightSuretyData.methods
                         .getInsurance(flight, passenger)
                         .call((error, result) => {
-                            console.log("Result: ", result);
+                            if (error)
+                                console.log("Error: ", error);
+
                             payload.insurance = result;
+                            payload.flight = flight;
+                            console.log("passenger: ", payload.passenger);
+                            console.log("flight: ", payload.flight);
+                            console.log("Result2: ", payload.insurance);
+                            console.log("Result: ", result);
+                            callback(error, payload);
                         });
-                    callback(error, payload);
                 }
             });
     }
@@ -242,6 +253,7 @@ export default class Contract {
             .getInsurance(flight, passenger)
             .call((error, result) => {
                 console.log("Result: ", result);
+                document.getElementById("show-insurance").value = result;
                 payload.insurance = result;
                 callback(error, payload);
             });
