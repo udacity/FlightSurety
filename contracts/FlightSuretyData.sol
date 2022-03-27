@@ -250,7 +250,7 @@ contract FlightSuretyData {
                             //contract must be operational
                             requireIsOperational
                             // caller must be authorized
-                            // requireIsAuthorized
+                            requireIsAuthorized
                             // airline must not already be a member
                             requireIsNotYetMember(airlineAddress)
                             returns(bool)

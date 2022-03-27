@@ -15,7 +15,6 @@ import './flightsurety.css';
             display('Operational Status', 'Check if contract is operational', [ { label: 'Operational Status', error: error, value: result} ]);
         });
 
-
         // User-submitted transaction
         DOM.elid('register-airline').addEventListener('click', async() => {
             let airline = DOM.elid('registered-airline').value;
@@ -49,7 +48,7 @@ import './flightsurety.css';
         });
 
         DOM.elid('purchase').addEventListener('click', async() => {
-            let passenger = DOM.elid('passenger').value;
+            let passenger = DOM.elid('passenger-ins').value;
             let flight = DOM.elid('flight-ins').value;
             let amount = DOM.elid('insurance').value;
 
@@ -60,21 +59,19 @@ import './flightsurety.css';
         });
 
         DOM.elid('ShowPurchase').addEventListener('click', async() => {
-            let passenger = DOM.elid('passenger').value;
+            let passenger = DOM.elid('passenger-check').value;
             let flight = DOM.elid('flight-check').value;
 
             // purchase insurance for a flight
             contract.checkInsurance(passenger, flight, (error, result) => {
                 display('Passenger', 'show insurance', [{label: 'show insurance', error: error, value:result.passenger + ' : ' +  result.flight + ' : ' +  result.insurance}]);
             });
-
-            // DOM.elid('insurance').value = result.insurance.toString();
         });
 
 
         DOM.elid('Withdraw').addEventListener('click', async() => {
-            let passenger = DOM.elid('passenger').value;
-            let flight = DOM.elid('flight').value;
+            let passenger = DOM.elid('passenger-claim').value;
+            let flight = DOM.elid('flight-claim').value;
 
             // purchase insurance for a flight
             contract.withdraw(passenger, flight, (error, result) => {
@@ -88,8 +85,6 @@ import './flightsurety.css';
                     display('Passenger', 'compensated', [{label: 'withdrawn:', error: error, value:result.passenger + ' : ' +  result.flight + ' : ' +  result.compensation}]);
                 }
             });
-
-
         });
 
         DOM.elid('check-oracle').addEventListener('click', () => {

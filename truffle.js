@@ -1,5 +1,6 @@
 var HDWalletProvider = require("truffle-hdwallet-provider");
-var mnemonic = "above actor cook happy among saddle afraid bubble border pluck laugh name";
+var mnemonic = "elegant spin road snake someone math slight pretty cup bleak stock region";
+
 
 var NonceTrackerSubprovider = require("web3-provider-engine/subproviders/nonce-tracker");
 
