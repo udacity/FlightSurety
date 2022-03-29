@@ -301,17 +301,4 @@ export default class Contract {
                 });
         }
 
-        viewFlightStatus(airline, flight, callback) {
-            let self = this;
-            let payload = {
-                airline: airline,
-                flight: flight
-            }
-            self.flightSuretyApp.methods
-                .viewFlightStatus(payload.flight, payload.airline)
-                .call({ from: self.accounts[0]}, (error, result) => {
-                    callback(error, result);
-                });
-        }
-
     }

@@ -315,10 +315,12 @@ contract FlightSuretyApp {
 
         // Information isn't considered verified until at least MIN_RESPONSES
         // oracles respond with the *** same *** information
-        emit OracleReport(airline, flight, timestamp, statusCode);
+        // emit OracleReport(airline, flight, timestamp, statusCode);
+        emit FlightStatusInfo(airline, flight, timestamp, statusCode);
         if (oracleResponses[key].responses[statusCode].length >= MIN_RESPONSES) {
+        // if (true) {
 
-            emit FlightStatusInfo(airline, flight, timestamp, statusCode);
+            // emit FlightStatusInfo(airline, flight, timestamp, statusCode);
 
             // Handle flight status as appropriate
             processFlightStatus(airline, flight, timestamp, statusCode);
