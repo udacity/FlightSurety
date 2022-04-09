@@ -243,6 +243,11 @@ contract FlightSuretyData is Ownable, SuretyFund, SuretyContract {
         require(bytes32(name).length > 0, "'name' must be a valid string.");
         return airlines[keccak256(abi.encodePacked(_bsf_airline,name))].isOperational;
     }
+    function getAirline(string memory name) external returns(address,string memory,bool,bool,uint256) {
+        require(bytes32(name).length > 0, "'name' must be a valid string.");
+        Airline ret = airlines[keccak256(abi.encodePacked(_bsf_airline,name))];
+        return (ret.account,ret.name,ret.registered,ret.operational,ret.vote);
+    }
     /**
     * @dev Registers an account as an airline.
     */
@@ -282,13 +287,12 @@ contract FlightSuretyData is Ownable, SuretyFund, SuretyContract {
     }
 
     function registerAirlineVote(string memory name, bool choice)
-    external
-    pure
-    requireOperational {
-        uint256 id = keccak256(abi.encodePacked(_bsf_airline, name));
-        require(block.timestamp - _airlines[id].vote > 0, "The voting period has expired.");
-        _registerAirlineVote(id, choice);
-        // TODO: evaluate token burn.
+        external
+        pure
+        requireOperational {
+            uint256 id = keccak256(abi.encodePacked(_bsf_airline, name));
+            require(block.timestamp - _airlines[id].vote > 0, "The voting period has expired.");
+            _registerAirlineVote(id, choice);
     }
 
     /********************************************************************************************/
@@ -338,16 +342,13 @@ contract FlightSuretyData is Ownable, SuretyFund, SuretyContract {
 
    /**
     * @dev Buy insurance for a flight
-    *
     */   
     function buy
                             (                             
                             )
                             external
                             payable
-    {
-
-    }
+    {}
 
     function _credit(bytes32 _contract, uint256 value) private {
         Insurance bond = _contracts[_contract];
@@ -374,6 +375,29 @@ contract FlightSuretyData is Ownable, SuretyFund, SuretyContract {
 
     /********************************************************************************************/
     /*                                     END Insurance FUNCTIONS                             */
+    /********************************************************************************************/
+
+    /********************************************************************************************/
+    /*                                     BEGIN Flight FUNCTIONS                             */
+    /********************************************************************************************/
+
+    struct Flight {
+        bool isRegistered;
+        uint8 statusCode;
+        uint256 updatedTimestamp;        
+        address airline;
+    }
+
+    function registerFlight(uint8 status, uint256 timestamp, address airline) external requireOperational {
+
+    }
+
+    function _registerFlight(uint8 status, uint256 timestamp, address airline) {
+
+    }
+
+    /********************************************************************************************/
+    /*                                     END Flight FUNCTIONS                             */
     /********************************************************************************************/
 
     /**
