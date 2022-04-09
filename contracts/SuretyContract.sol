@@ -1,6 +1,6 @@
 pragma solidity ^0.4.24;
 
-abstract contract SuretyContract {
+abstract contract FlightSuretyContract {
 
     string private _bsf_contract = "bsf.contract";
 
@@ -19,11 +19,18 @@ abstract contract SuretyContract {
         /**
         * @dev airline.
         */
-        bytes32 airline;
+        bytes32 flight;
         /**
         * @dev Insured value.
         */
         uint256 value;
+    }
+
+    enum InsuranceType {
+        Accident,
+        Cancellation,
+        Delay,
+        Luggage
     }
 
     /**
@@ -35,8 +42,43 @@ abstract contract SuretyContract {
     */
     mapping(address => uint256) _contractCount;
 
-    function getNextContractId() returns(bytes32 id){
-        uint256 count = _contractCount[msg.sender];
-        id = keccak256(abi.encodePacked(_bsf_contract,count.add(1),msg.sender));
+    function _getContractId(address owner, uint256 count) private returns (bytes32 id) {
+        id = keccak256(abi.encodePacked(_bsf_contract, owner, count));
+    }
+    /**
+     * @dev Gets the contracts for a specified address.
+     */
+    function getContractIds(address owner) external view returns (bytes32[] ids){
+        uint256 count = _contractCount[owner];
+        ids = bytes32[count];
+        for(uint256 i = 0; i <= count; i += 1){
+            ids[i] = _getContractId(owner, count);
+        }
+    }
+
+    /**
+     * @dev Get contract id.
+     */
+    function getNextContractId(address owner, uint256 count) external view returns(bytes32 id) {
+        uint256 count = _contractCount[owner].add(1);
+        id = _getContractId(owner, count);
+        _contractCount[owner] = count;
+    }
+
+    function _registerContract() private returns(bool) {
+
+    }
+
+    /**
+     * @dev Registers a contract.
+     */
+    function registerContract(address owner, 
+                              bytes32 fund,
+                              bytes32 flight,
+                              uint8 typeId,
+                              uint256 value)
+                              external
+         returns(bool ret){
+
     }
 }

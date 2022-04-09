@@ -61,8 +61,27 @@ abstract contract SuretyFund {
     */
     event FundContributionWithdrawal(bytes32 id, uint256 amount, address indexed account);
 
-    function getNextFundId() external returns(bytes32 id){
-        uint256 count = _fundCount[msg.sender];
-        id = keccak256(abi.encodePacked(_bsf_fund, count.add(1), msg.sender));
+    function _getFundId(address owner, uint256 count) private returns(bytes32 id){
+        id = keccak256(abi.encodePacked(_bsf_fund, owner, count));
+    }
+
+    /**
+     * @dev Gets the fund ids for a specified owner.
+     */
+    function getFundIds(address owner) external returns(bytes32[] ids){
+        uint256 count = _fundCount[owner];
+        ids = bytes32[count];
+        for(uint256 i = 0; i <= count; i += 1){
+            ids[i] = _getFundId(owner, count);
+        }
+    }
+
+    /**
+     * @dev Gets the next fund id for a specified owner
+     */
+    function getNextFundId(address owner) external returns(bytes32 id){
+        uint256 count = _fundCount[owner].add(1);
+        id = _getFundId(owner, count);
+        _fundCount[owner] = count;
     }
 }

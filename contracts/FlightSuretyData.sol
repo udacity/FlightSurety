@@ -17,6 +17,9 @@ contract FlightSuretyData is Ownable, SuretyFund, SuretyContract {
     string private _bsf_airline = "bsf.airline";
     string private _bsf_airline_vote = "bsf.airline.vote";
 
+    string private _bsf_fund = "bsf.fund";
+    //string private _bsf_
+
     /**
     * @dev Operational status of the contract.
     */
@@ -39,8 +42,13 @@ contract FlightSuretyData is Ownable, SuretyFund, SuretyContract {
     * @dev Airlines accessor.
     */
     mapping(bytes32 => Airline) _airlines;
+    /**
+     * @dev Airline votes accessor.
+     */
     mapping(bytes32 => AirlineVote[]) _airlineVotes;
-
+    /**
+     * @dev Payouts accessor.
+     */
     mapping(address => uint256) _payouts;
 
     /**
@@ -219,7 +227,7 @@ contract FlightSuretyData is Ownable, SuretyFund, SuretyContract {
     * @dev Gets the key to identify a fund.
     */
     function getFundKey(string memory name){
-        return keccak256(abi.encodePacked(name));
+        return keccak256(abi.encodePacked(_bsf_fund, name));
     }
 
     /********************************************************************************************/
@@ -229,6 +237,9 @@ contract FlightSuretyData is Ownable, SuretyFund, SuretyContract {
     /********************************************************************************************/
     /*                                     START Airline FUNCTIONS                             */
     /********************************************************************************************/
+    function _existsAirline(string memory name) private returns(bool){
+        return airlines[keccak256(abi.encodePacked(_bsf_airline,name))].account != address(0);
+    }
     /**
     * TODO: Document
     */
@@ -243,10 +254,20 @@ contract FlightSuretyData is Ownable, SuretyFund, SuretyContract {
         require(bytes32(name).length > 0, "'name' must be a valid string.");
         return airlines[keccak256(abi.encodePacked(_bsf_airline,name))].isOperational;
     }
-    function getAirline(string memory name) external returns(address,string memory,bool,bool,uint256) {
-        require(bytes32(name).length > 0, "'name' must be a valid string.");
-        Airline ret = airlines[keccak256(abi.encodePacked(_bsf_airline,name))];
-        return (ret.account,ret.name,ret.registered,ret.operational,ret.vote);
+
+    function _getAirline(string memory name) private returns(address,string memory,bool,bool,uint256){
+            Airline ret = airlines[keccak256(abi.encodePacked(_bsf_airline,name))];
+            return (ret.account,ret.name,ret.registered,ret.operational,ret.vote);
+    }
+    /**
+     * Get(s) an airline 'object' by name.
+     */
+    function getAirline(string memory name) 
+        external 
+        requireOperational 
+        returns(address,string memory,bool,bool,uint256) {
+            require(bytes32(name).length > 0, "'name' must be a valid string.");
+            return _getAirline(name);
     }
     /**
     * @dev Registers an account as an airline.
@@ -388,11 +409,12 @@ contract FlightSuretyData is Ownable, SuretyFund, SuretyContract {
         address airline;
     }
 
-    function registerFlight(uint8 status, uint256 timestamp, address airline) external requireOperational {
-
+    function registerFlight(uint8 status, string airline, string flight) external requireOperational {
+        require(_existAirline(airline), "");
+        keccak256(abi.encodePacked(_bsf_airline,name));
     }
 
-    function _registerFlight(uint8 status, uint256 timestamp, address airline) {
+    function _registerFlight(uint8 status, address airline, string flight) {
 
     }
 

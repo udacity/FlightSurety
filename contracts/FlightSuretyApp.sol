@@ -19,7 +19,10 @@ contract FlightSuretyApp {
 
     string private _bsf_contract = "bsf.contract";
     string private _bsf_fund = "bsf.fund";
+
     string private _bsf_airline = "bsf.airline";
+    string private _bsf_airline_vote = "bsf.airline.vote";
+
     string private _bsf_flight = "bsf.flight";
 
     /**
@@ -71,6 +74,8 @@ contract FlightSuretyApp {
     * @dev
     */
     FlightSuretyData private data;
+
+    bool private operational;
  
     /********************************************************************************************/
     /*                                       FUNCTION MODIFIERS                                 */
@@ -87,7 +92,7 @@ contract FlightSuretyApp {
     modifier requireIsOperational() 
     {
          // Modify to call data contract's status
-        require(true, "Contract is currently not operational");  
+        require(operational, "Contract is not currently operational.");  
         _;  // All modifiers require an "_" which indicates where the function body will be added
     }
 
@@ -114,6 +119,7 @@ contract FlightSuretyApp {
                                 public 
     {
         contractOwner = msg.sender;
+        registerAirline("Frontier Airlines", msg.sender);
     }
 
     /********************************************************************************************/
@@ -169,7 +175,14 @@ contract FlightSuretyApp {
         require(data.isAirlineRegistered(airline), "The airline " + airline + " is not registered.");
         require(data.isAirlineOperational(airline), "The airline " + airline + " is not operational.");
 
+        address airlineAddress;
+        string memory name;
+        bool registered;
+        bool operational;
+        uint256 vote;
+        (airlineAddress,name,,,) = data.getAirline(airline);
 
+        data.registerFlight(status, block.timestamp, );
     }
     
    /**
@@ -281,9 +294,6 @@ contract FlightSuretyApp {
 
         return oracles[msg.sender].indexes;
     }
-
-
-
 
     // Called by oracle when a response is available to an outstanding request
     // For the response to be accepted, there must be a pending request that is open
