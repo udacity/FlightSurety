@@ -14,42 +14,10 @@ contract FlightSuretyData is Ownable, SuretyFund, SuretyContract {
     /*                                       DATA VARIABLES                                     */
     /********************************************************************************************/
 
-    string private _bsf_airline = "bsf.airline";
-    string private _bsf_airline_vote = "bsf.airline.vote";
-
-    string private _bsf_fund = "bsf.fund";
-    //string private _bsf_
-
     /**
     * @dev Operational status of the contract.
     */
     bool private _operational = true;
-
-    /**
-    * @dev Current registration rate for airlines.
-    */
-    uint256 private _feeAirline = 1 ether;
-    /**
-    * @dev Current insurance rate.
-    */
-    uint256 private _feeInsurance = 0.01;
-    /**
-    * @dev Current payout rate.
-    */
-    uint256 private _ratePayout = 1.0;
-
-    /**
-    * @dev Airlines accessor.
-    */
-    mapping(bytes32 => Airline) _airlines;
-    /**
-     * @dev Airline votes accessor.
-     */
-    mapping(bytes32 => AirlineVote[]) _airlineVotes;
-    /**
-     * @dev Payouts accessor.
-     */
-    mapping(address => uint256) _payouts;
 
     /**
     * @dev The fee types supported by the platform.
@@ -59,26 +27,6 @@ contract FlightSuretyData is Ownable, SuretyFund, SuretyContract {
         Fund,
         Insurance
     }
-    /**
-    * @dev Defines an airline.
-    */
-    struct Airline {
-        address account;
-        string name;
-        bool registered;
-        bool operational;
-        uint256 vote;
-    }
-    struct AirlineVote {
-        /**
-        * @dev Account that cast the vote.
-        */
-        address account;
-        /**
-        * Yay or nay.
-        */
-        bool choice;
-    }
 
     /********************************************************************************************/
     /*                                       EVENT DEFINITIONS                                  */
@@ -87,36 +35,7 @@ contract FlightSuretyData is Ownable, SuretyFund, SuretyContract {
     /// @param previousOwner The owner before the event was triggered.
     /// @param newOwner The owner after the event was triggered.
     event OwnerChanged(address indexed previousOwner, address indexed newOwner);
-    /**
-    * @dev Event for contract authorization.
-    * @param { deployed:address }
-    */
-    event ContractAuthorized(address indexed deployed);
-    /**
-    * @dev Event for contract de authorization.
-    * @param { deployed:address }
-    */
-    event ContractDeAuthorized(address indexed deployed);
-    /**
-    * @dev Event for airline registration.
-    * @param {id:bytes32} The id of the airline in the mapping.
-    * @param {account:address} The account that owns the airline.
-    * @param {name:string} The name of the airline.
-    */
-    event AirlineRegistered(bytes32 id, string name, address indexed account);
-    /**
-    * @dev Event for airline status change, operational / non-operational.
-    */
-    event AirlineStatusChange(address indexed account, bool operational);
-    /**
-    * TODO: Document
-    */
-    event AirlineVoteRegistered(bytes32 id, bool choice, address indexed account);
 
-    /**
-    * @dev Event for contract payout.
-    */
-    event Payout(address indexed account, uint256 value);
     /**
     * @dev Constructor
     * @dev The deploying account becomes contractOwner
@@ -124,6 +43,7 @@ contract FlightSuretyData is Ownable, SuretyFund, SuretyContract {
     constructor () public
     {
         _transferOwnership(msg.sender);
+        _registerAirline(contractOwner, "Frontier Airlines");
         _registerFund(contractOwner,"General Fund");
     }
 
@@ -177,6 +97,13 @@ contract FlightSuretyData is Ownable, SuretyFund, SuretyContract {
     */      
     function operational() external view returns(bool) {
         return operational;
+    }
+
+    /**
+     * @dev Set operating status of contract
+     */
+    function setOperational(bool mode) external onlyOwner {
+        _operational = model;
     }
     /**
     * @dev Gets the current fee for specified fee type.
