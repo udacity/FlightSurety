@@ -17,6 +17,19 @@ contract FlightData {
 
     mapping(bytes32 => Flight) private flights;
 
+    function getFlightId
+                        (
+                            address airline,
+                            string flight,
+                            uint256 timestamp
+                        )
+                        pure
+                        internal
+                        returns(bytes32) 
+    {
+        return keccak256(abi.encodePacked(airline, flight, timestamp));
+    }
+
     function registerFlight(uint8 status, string airline, string flight) external requireOperational {
         require(_existAirline(airline), "");
         keccak256(abi.encodePacked(_bsf_airline,name));
@@ -25,4 +38,6 @@ contract FlightData {
     function _registerFlight(uint8 status, address airline, string flight) {
 
     }
+
+
 }

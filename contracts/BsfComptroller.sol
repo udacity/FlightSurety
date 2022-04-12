@@ -33,8 +33,9 @@ interface IBsfComptroller {
     /**
      * @dev Gets a 'AuthContract' object.
      * @param {string} The contract key.
+     * @return {bytes32:id, bool:enabled, address:deployed} Contract struct.
      */
-    function getContract(string memory key) returns (bool,address);
+    function getContract(string memory key) returns (bytes32, bool, address);
     /**
      * @dev Gets the contract id
      * @param key {string} The contract key.
@@ -76,11 +77,18 @@ contract BsfComptroller is Ownable, IBsfComptroller {
     function _existsContract(bytes32 id) private returns (bool exists){
         exists = _authorized[id].deployed != address(0);
     }
-    /**
-     * @dev Determines if a contract with specified 'key' exists.
-     */
     function existsContract(string memory key) external view returns(bool exists){
         return _existsContract(_getContractId(key));
+    }
+
+    function _getContract(string memory key) private view returns(bytes32 id, bool enabled, address deployed) {
+        AuthContract c = _authorized[key];
+        id = _getContractId(key);
+        enabled = c.enabled;
+        deployed = c.deployed;
+    }
+    function getContract(string memory key) external view returns (bytes32, string memory, bool, address) {
+        return _getContract(key);
     }
 
     function _getContractId(string memory key) private returns (bytes32 id) {
