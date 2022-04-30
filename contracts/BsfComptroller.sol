@@ -28,11 +28,12 @@ interface IBsfComptroller {
     event ContractDisabled(address indexed deployed, bytes32 id, string key);
     /**
      * @dev Determines if a contract exists.
+     * @param key {string} The contract key.
      */
     function existsContract(string memory key) returns (bool);
     /**
      * @dev Gets a 'AuthContract' object.
-     * @param {string} The contract key.
+     * @param key {string} The contract key.
      */
     function getContract(string memory key) returns (bool,address);
     /**
@@ -71,6 +72,7 @@ contract BsfComptroller is Ownable, IBsfComptroller {
     mapping(uint256 => AuthContract) _authorized;
 
     event ContractAuthorized(address indexed deployed, bytes32 id, string key);
+    event ContractDeployedChanged(address indexed deployed, bytes32 id, string key);
     event ContractDisabled(address indexed deployed, bytes32 id, string key);
 
     function _existsContract(bytes32 id) private returns (bool exists){
