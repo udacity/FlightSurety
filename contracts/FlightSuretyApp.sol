@@ -12,17 +12,13 @@ contract SuretyApp is Ownable {
     /********************************************************************************************/
     /*                                       DATA VARIABLES                                     */
     /********************************************************************************************/
-
-    string private _bsf_contract = "bsf.contract";
-    string private _bsf_fund = "bsf.fund";
-
-    string private _bsf_airline = "bsf.airline";
-    string private _bsf_airline_vote = "bsf.airline.vote";
-
-    string private _bsf_flight = "bsf.flight";
-
-    address private _comptrollerAddress;
-    IBsfComptroller private _comptroller;
+    string internal _bsf_surety_app = "bsf.surety.app";
+    string internal _bsf_surety_data = "bsf.surety.data";
+    string internal _bsf_contract = "bsf.contract";
+    string internal _bsf_fund = "bsf.fund";
+    string internal _bsf_airline = "bsf.airline";
+    string internal _bsf_airline_vote = "bsf.airline.vote";
+    string internal _bsf_flight = "bsf.flight";
 
     /**
     * @dev Unknown Status
@@ -48,10 +44,6 @@ contract SuretyApp is Ownable {
     * @dev Late - Other Status
     */
     uint8 private constant STATUS_CODE_LATE_OTHER = 50;
-    /**
-    * @dev Account used to deploy contract
-    */
-    address private contractOwner;
 
     /**
     * @dev The fee types supported by the platform.
@@ -62,7 +54,7 @@ contract SuretyApp is Ownable {
         Insurance
     }
 
-    IBsfComptroller private _comptroller;
+    IBsfComptroller internal _comptroller;
 
     /**
     * @dev SuretyData accessor.
@@ -89,9 +81,20 @@ contract SuretyApp is Ownable {
         _;
     }
 
+    modifier requireFee(FeeType feeType){
+        uint256 fee = _data.fee(feeType);
+        require(msg.value - fee > 0, "Insufficient value in transaction, please include required fee.");
+        _;
+    }
+
     modifier requireValidString(string memory value){
         bytes memory temp = bytes(name);
         require(temp.length > 0, "'name' must be a valid string.");
+        _;
+    }
+
+    modifier requireValidAddress(address account){
+        require(account != address(0), "'account' cannot be equal to burn address.");
         _;
     }
 
@@ -101,19 +104,20 @@ contract SuretyApp is Ownable {
 
     /**
     * @dev Contract constructor
-    *
+    * @param comptroller {address}
+    * @param backend {address} SuretyData Contract
     */
     constructor
                                 (
                                     address comptroller,
-                                    address data
+                                    address backend
                                 ) 
                                 public 
     {
         require(comptroller != address(0), "'comptroller' cannot be equal to burn address.");
         _operational = true;
         _comptroller = IBsfComptroller(comptroller);
-        _data = SuretyData(data);
+        _data = SuretyData(backend);
     }
 
     /********************************************************************************************/
@@ -125,7 +129,7 @@ contract SuretyApp is Ownable {
                             pure 
                             returns(bool) 
     {
-        return data.operational();  // Modify to call data contract's status
+        return _data.operational();  // Modify to call data contract's status
     }
 
     /********************************************************************************************/
@@ -145,12 +149,14 @@ contract SuretyApp is Ownable {
                             )
                             external
                             pure
+                            requireValidString(name)
+                            requireValidAddress(account)
+                            requireFee(FeeType.Airline)
                             returns(bool success, uint256 votes)
     {
         require(!_data.isAirlineRegistered(name), "The airline " + name + " is already registered.");
-        uint256 fee = _data.fee(FeeType.Airline);
-        require(msg.value - fee > 0, "Not enough value to cover the airline registration fee.");
-        bool registered = _data.registerAirline(account, name);
+        success = _data.registerAirline(account, name);
+        votes = _data.getAirlineVotes(account, name);
     }
 
 
@@ -159,12 +165,14 @@ contract SuretyApp is Ownable {
     */  
     function registerFlight
                                 (
-                                    string memory airline,
+                                    address airline,
                                     string memory flight,
                                     uint8 status
                                 )
                                 external
                                 pure
+                                requireValidAddress(airline)
+                                requireValidString(flight)
     {
         require(_data.isAirlineRegistered(airline), "The airline " + airline + " is not registered.");
         require(_data.isAirlineOperational(airline), "The airline " + airline + " is not operational.");
@@ -177,25 +185,11 @@ contract SuretyApp is Ownable {
         //data.registerFlight(status, block.timestamp, );
     }
     
-   /**
-    * @dev Called after oracle has updated flight status
-    */  
-    function processFlightStatus
-                                (
-                                    string memory airline,
-                                    string memory flight,
-                                    uint256 timestamp,
-                                    uint8 statusCode
-                                )
-                                internal
-                                pure
-    {
 
-    }
 
 
     // Generate a request for oracles to fetch flight information
-    function fetchFlightStatus
+    function getFlightStatus
                         (
                             address airline,
                             string flight,
@@ -233,7 +227,7 @@ contract SuretyApp is Ownable {
                                                         // the response that majority of the oracles
     }
 
-    function getFlightKey
+    function getFlightId
                         (
                             address airline,
                             string flight,
@@ -241,8 +235,9 @@ contract SuretyApp is Ownable {
                         )
                         pure
                         internal
+                        requireOperational
                         returns(bytes32) 
     {
-        return keccak256(abi.encodePacked(airline, flight, timestamp));
+        return _data.getFlightId(flight, airline, timestamp);
     }
 }   

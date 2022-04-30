@@ -18,7 +18,10 @@ contract FlightData {
 
     mapping(bytes32 => Flight) private flights;
 
-    function _getFlight(string memory name) private returns(bytes32,string memory,bool,address,uint8,uint256){
+    function _getFlight(string memory name) 
+        private 
+        returns(bytes32,string memory,bool,address,uint8,uint256)
+    {
         bytes32 id = _getFlightId(name);
         Flight ret = flights[id];
         return (id,ret.name,ret.registered,ret.airline,ret.status,ret.timestamp);
@@ -36,39 +39,37 @@ contract FlightData {
             return _getAirline(name);
     }
 
-    function _getFlightId(string memory name) private view returns(bytes32 id){
+    function _getFlightId(string memory name, address airline, uint256 timestamp) private view returns(bytes32 id){
         return keccak256(abi.encodePacked(_bsf_flight, name));
     }
 
     /**
      * @dev Gets an airline id by name.
      */
-    function getFlightId(string memory name) external view returns(bytes32 id){
+    function getFlightId(string memory name, address airline, uint256 timestamp) external view returns(bytes32 id){
         bytes memory temp = bytes(name);
         require(temp.length > 0, "'name' must be a valid string.");
         return _getFlightId(name);
     }
 
-    function _isFlightRegistered(string memory name) private view returns(bool){
-        return flights[_getFlightId(name)].registered;
+    function _isFlightRegistered(string memory name, address airline, uint256 timestamp) private view returns(bool){
+        return flights[_getFlightId(name, airline, timestamp)].registered;
     }
     
     /**
     * @dev Checks an airlines registration.
     */
-    function isFlightRegistered(string memory name) external view returns(bool) {
+    function isFlightRegistered(string memory name, address airline, uint256 timestamp) external view returns(bool) {
         bytes memory temp = bytes(name);
         require(temp.length > 0, "'name' must be a valid string.");
-        return _isFlightRegistered(name);
+        return _isFlightRegistered(name, airline, timestamp);
     }
     
-    function registerFlight(uint8 status, string airline, string flight) external requireOperational {
-        require(!_isFlightRegistered(flight), "Flight is already registered.");
+    function registerFlight(uint8 status, address airline, string flight, uint256 timestamp) external requireOperational {
+        require(!_isFlightRegistered(flight, airline, timestamp), "Flight is already registered.");
     }
 
     function _registerFlight(uint8 status, address airline, string flight) {
 
     }
-
-
 }

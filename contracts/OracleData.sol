@@ -35,7 +35,6 @@ contract OracleData {
     /**
      * @dev Returns array of three non-duplicating integers from 0-9
      */ 
-=======
     struct Oracle {
         bool registered;
         uint8[3] indexes;        
@@ -142,6 +141,23 @@ contract OracleData {
         return random;
     }
 
+    /**
+    * @dev Called after oracle has updated flight status
+    */  
+    function _setFlightStatus
+                                (
+                                    address airline,
+                                    string memory flight,
+                                    uint256 timestamp,
+                                    uint8 statusCode
+                                )
+                                internal
+                                pure
+                                
+    {
+        
+    }
+
     // Called by oracle when a response is available to an outstanding request
     // For the response to be accepted, there must be a pending request that is open
     // and matches one of the three Indexes randomly assigned to the oracle at the
@@ -166,49 +182,49 @@ contract OracleData {
                                     });
     }
 
-    // Called by oracle when a response is available to an outstanding request
-    // For the response to be accepted, there must be a pending request that is open
-    // and matches one of the three Indexes randomly assigned to the oracle at the
-    // time of registration (i.e. uninvited _oracles are not welcome)
-    function submitOracleResponse
-                        (
-                            uint8 index,
-                            address airline,
-                            string flight,
-                            uint256 timestamp,
-                            uint8 statusCode
-                        )
-                        external
-    {
-        require((oracles[msg.sender].indexes[0] == index) || (oracles[msg.sender].indexes[1] == index) || (oracles[msg.sender].indexes[2] == index), "Index does not match oracle request");
+    // // Called by oracle when a response is available to an outstanding request
+    // // For the response to be accepted, there must be a pending request that is open
+    // // and matches one of the three Indexes randomly assigned to the oracle at the
+    // // time of registration (i.e. uninvited _oracles are not welcome)
+    // function submitOracleResponse
+    //                     (
+    //                         uint8 index,
+    //                         address airline,
+    //                         string flight,
+    //                         uint256 timestamp,
+    //                         uint8 statusCode
+    //                     )
+    //                     external
+    // {
+    //     require((oracles[msg.sender].indexes[0] == index) || (oracles[msg.sender].indexes[1] == index) || (oracles[msg.sender].indexes[2] == index), "Index does not match oracle request");
 
 
-        bytes32 key = keccak256(abi.encodePacked(index, airline, flight, timestamp)); 
-        require(oracleResponses[key].isOpen, "Flight or timestamp do not match oracle request");
+    //     bytes32 key = keccak256(abi.encodePacked(index, airline, flight, timestamp)); 
+    //     require(oracleResponses[key].isOpen, "Flight or timestamp do not match oracle request");
 
-        oracleResponses[key].responses[statusCode].push(msg.sender);
+    //     oracleResponses[key].responses[statusCode].push(msg.sender);
 
-        // Information isn't considered verified until at least MIN_RESPONSES
-        // oracles respond with the *** same *** information
-        emit OracleReport(airline, flight, timestamp, statusCode);
-        if (oracleResponses[key].responses[statusCode].length >= MIN_RESPONSES) {
-        require((_oracles[msg.sender].indexes[0] == index) || (_oracles[msg.sender].indexes[1] == index) || (_oracles[msg.sender].indexes[2] == index), "Index does not match oracle request");
+    //     // Information isn't considered verified until at least MIN_RESPONSES
+    //     // oracles respond with the *** same *** information
+    //     emit OracleReport(airline, flight, timestamp, statusCode);
+    //     if (oracleResponses[key].responses[statusCode].length >= MIN_RESPONSES) {
+    //     require((_oracles[msg.sender].indexes[0] == index) || (_oracles[msg.sender].indexes[1] == index) || (_oracles[msg.sender].indexes[2] == index), "Index does not match oracle request");
 
 
-        bytes32 key = keccak256(abi.encodePacked(index, airline, flight, timestamp)); 
-        require(_oracleResponses[key].isOpen, "Flight or timestamp do not match oracle request");
+    //     bytes32 key = keccak256(abi.encodePacked(index, airline, flight, timestamp)); 
+    //     require(_oracleResponses[key].isOpen, "Flight or timestamp do not match oracle request");
 
-        _oracleResponses[key].responses[statusCode].push(msg.sender);
+    //     _oracleResponses[key].responses[statusCode].push(msg.sender);
 
-        // Information isn't considered verified until at least MIN_RESPONSES
-        // _oracles respond with the *** same *** information
-        emit OracleReport(airline, flight, timestamp, statusCode);
-        if (_oracleResponses[key].responses[statusCode].length >= MIN_RESPONSES) {
+    //     // Information isn't considered verified until at least MIN_RESPONSES
+    //     // _oracles respond with the *** same *** information
+    //     emit OracleReport(airline, flight, timestamp, statusCode);
+    //     if (_oracleResponses[key].responses[statusCode].length >= MIN_RESPONSES) {
 
-            emit FlightStatusInfo(airline, flight, timestamp, statusCode);
+    //         emit FlightStatusInfo(airline, flight, timestamp, statusCode);
 
-            // Handle flight status as appropriate
-            processFlightStatus(airline, flight, timestamp, statusCode);
-        }
-    }
+    //         // Handle flight status as appropriate
+    //         _setFlightStatus(airline, flight, timestamp, statusCode);
+    //     }
+    // }
 }

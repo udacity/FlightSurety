@@ -40,10 +40,6 @@ contract SuretyData is Ownable,
     /********************************************************************************************/
     /*                                       EVENT DEFINITIONS                                  */
     /********************************************************************************************/
-    /// @notice Emitted when the owner of the surety contract changes.
-    /// @param previousOwner The owner before the event was triggered.
-    /// @param newOwner The owner after the event was triggered.
-    event OwnerChanged(address indexed previousOwner, address indexed newOwner);
 
     /**
     * @dev Constructor
@@ -77,7 +73,7 @@ contract SuretyData is Ownable,
     /********************************************************************************************/
     /*                                       UTILITY FUNCTIONS                                  */
     /********************************************************************************************/
-    function _calculateFee(FeeType fee, uint256 value) private returns(uint256 f) {
+    function _calculateFee(FeeType _fee, uint256 value) internal returns(uint256 f) {
         if(fee == FeeType.Airline) {
             f = _getAirlineFee();
         }
@@ -141,21 +137,6 @@ contract SuretyData is Ownable,
         if(FeeType.Insurance == feeType) {
             _setContractFee(amount);
         }
-    }
-
-    /********************************************************************************************/
-    /*                                     SMART CONTRACT FUNCTIONS                             */
-    /********************************************************************************************/
-
-    /**
-    * @dev Fallback function for funding smart contract.
-    *
-    */
-    fallback() 
-                            external 
-                            payable 
-    {
-        //fund();
     }
 }
 

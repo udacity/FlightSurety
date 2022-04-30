@@ -72,7 +72,7 @@ contract AirlineData {
     /**
      * @dev Gets an airline id by name.
      */
-    function getAirlineId(string memory name) external view returns(bytes32 id){
+    function getAirlineId(string calldata name) external view returns(bytes32 id){
         bytes memory temp = bytes(name);
         require(temp.length > 0, "'name' must be a valid string.");
         return _getAirlineId(name);
@@ -84,7 +84,7 @@ contract AirlineData {
     /**
     * @dev Checks an airlines registration.
     */
-    function isAirlineRegistered(string memory name) external view returns(bool) {
+    function isAirlineRegistered(string calldata name) external view returns(bool) {
         bytes memory temp = bytes(name);
         require(temp.length > 0, "'name' must be a valid string.");
         return _isAirlineRegistered(name);
@@ -97,7 +97,7 @@ contract AirlineData {
     /**
     * @dev Checks an airlines operational status.
     */
-    function isAirlineOperational(string memory name) external view returns(bool){
+    function isAirlineOperational(string calldata name) external view returns(bool){
         bytes memory temp = bytes(name);
         require(temp.length > 0, "'name' must be a valid string.");
         return _isAirlineOperational(name);
@@ -127,7 +127,7 @@ contract AirlineData {
     /**
     * @dev Registers an account as an airline.
     */
-    function _registerAirline(address account, string memory name, bool registered, bool operational) private returns(bool registered) {
+    function _registerAirline(address account, string memory name, bool registered, bool operational) private returns(bool success) {
         bytes32 id = _getAirlineId(name);
         uint256 period = block.timestamp.add(_voteAirline);
         _airlines[id] = Airline({
@@ -137,6 +137,7 @@ contract AirlineData {
             vote: period
         });
         emit AirlineRegistered(id, name);
+        success = true;
     }
 
     function _registerAirlineVote(bytes32 id, bool choice) private {

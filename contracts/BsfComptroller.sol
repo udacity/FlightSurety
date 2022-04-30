@@ -77,14 +77,14 @@ contract BsfComptroller is Ownable, IBsfComptroller {
     event ContractDeployedChanged(address indexed deployed, bytes32 id, string key);
     event ContractDisabled(address indexed deployed, bytes32 id, string key);
 
-    function _existsContract(bytes32 id) private returns (bool exists){
+    function _existsContract(bytes32 id) internal returns (bool exists){
         exists = _authorized[id].deployed != address(0);
     }
     function existsContract(string memory key) external view returns(bool exists){
         return _existsContract(_getContractId(key));
     }
 
-    function _getContract(string memory key) private view returns(bytes32 id, bool enabled, address deployed) {
+    function _getContract(string memory key) internal view returns(bytes32 id, bool enabled, address deployed) {
         AuthContract c = _authorized[key];
         id = _getContractId(key);
         enabled = c.enabled;
@@ -94,14 +94,14 @@ contract BsfComptroller is Ownable, IBsfComptroller {
         return _getContract(key);
     }
 
-    function _getContractId(string memory key) private returns (bytes32 id) {
+    function _getContractId(string memory key) internal view returns (bytes32 id) {
         id = keccak256(abi.encodePacked(_bsf_contract, key));
     }
     function getContractId(string memory key) external view returns(bytes32 id){
         return _getContractId(deployed);
     }
 
-    function _registerContract(bytes32 id, address deployed) private returns(bool) {
+    function _registerContract(bytes32 id, address deployed) internal returns(bool) {
         _authorized[id] = AuthContract({
             enabled: true,
             deployed: deployed
@@ -123,7 +123,7 @@ contract BsfComptroller is Ownable, IBsfComptroller {
             return false;
     }
 
-    function _setContractDeployed(bytes32 id, address deployed) private returns(bool) {
+    function _setContractDeployed(bytes32 id, address deployed) internal returns(bool) {
         AuthContract storage c = _authorized[id];
         c.deployed = deployed;
         return c.deployed == deployed;
