@@ -13,6 +13,17 @@ contract SuretyApp is Ownable {
     /*                                       DATA VARIABLES                                     */
     /********************************************************************************************/
 
+    string private _bsf_contract = "bsf.contract";
+    string private _bsf_fund = "bsf.fund";
+
+    string private _bsf_airline = "bsf.airline";
+    string private _bsf_airline_vote = "bsf.airline.vote";
+
+    string private _bsf_flight = "bsf.flight";
+
+    address private _comptrollerAddress;
+    IBsfComptroller private _comptroller;
+
     /**
     * @dev Unknown Status
     */
@@ -213,15 +224,6 @@ contract SuretyApp is Ownable {
     // Number of oracles that must respond for valid status
     uint256 private constant MIN_RESPONSES = 3;
 
-
-    struct Oracle {
-        bool isRegistered;
-        uint8[3] indexes;        
-    }
-
-    // Track all registered oracles
-    mapping(address => Oracle) private oracles;
-
     // Model for responses from oracles
     struct ResponseInfo {
         address requester;                              // Account that requested status
@@ -230,16 +232,6 @@ contract SuretyApp is Ownable {
                                                         // This lets us group responses and identify
                                                         // the response that majority of the oracles
     }
-
-    // Track all oracle responses
-    // Key = hash(index, flight, timestamp)
-    mapping(bytes32 => ResponseInfo) private oracleResponses;
-
-    // Event fired each time an oracle submits a response
-    event FlightStatusInfo(address airline, string flight, uint256 timestamp, uint8 status);
-
-
-
 
     function getFlightKey
                         (
@@ -253,8 +245,4 @@ contract SuretyApp is Ownable {
     {
         return keccak256(abi.encodePacked(airline, flight, timestamp));
     }
-
-
-
-
 }   

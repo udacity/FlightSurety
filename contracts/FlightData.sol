@@ -61,7 +61,7 @@ contract FlightData {
         require(temp.length > 0, "'name' must be a valid string.");
         return _isFlightRegistered(name);
     }
-
+    
     function registerFlight(uint8 status, string airline, string flight) external requireOperational {
         require(!_isFlightRegistered(flight), "Flight is already registered.");
     }
@@ -69,4 +69,6 @@ contract FlightData {
     function _registerFlight(uint8 status, address airline, string flight) {
 
     }
+
+
 }
