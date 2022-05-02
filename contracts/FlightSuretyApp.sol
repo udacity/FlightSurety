@@ -1,10 +1,11 @@
-pragma solidity ^0.4.25;
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.0;
 
 // It's important to avoid vulnerabilities due to numeric overflow bugs
 // OpenZeppelin's SafeMath library, when used correctly, protects agains such bugs
 // More info: https://www.nccgroup.trust/us/about-us/newsroom-and-events/blog/2018/november/smart-contract-insecurity-bad-arithmetic/
 
-import "../node_modules/openzeppelin-solidity/contracts/math/SafeMath.sol";
+import "../node_modules/@openzeppelin/contracts/utils/math/SafeMath.sol";
 
 /************************************************** */
 /* FlightSurety Smart Contract                      */
@@ -74,7 +75,7 @@ contract FlightSuretyApp {
     constructor
                                 (
                                 ) 
-                                public 
+                                 
     {
         contractOwner = msg.sender;
     }
@@ -145,7 +146,7 @@ contract FlightSuretyApp {
     function fetchFlightStatus
                         (
                             address airline,
-                            string flight,
+                            string memory flight,
                             uint256 timestamp                            
                         )
                         external
@@ -230,7 +231,7 @@ contract FlightSuretyApp {
                             )
                             view
                             external
-                            returns(uint8[3])
+                            returns(uint8[3] memory)
     {
         require(oracles[msg.sender].isRegistered, "Not registered as an oracle");
 
@@ -248,7 +249,7 @@ contract FlightSuretyApp {
                         (
                             uint8 index,
                             address airline,
-                            string flight,
+                            string memory flight,
                             uint256 timestamp,
                             uint8 statusCode
                         )
@@ -278,7 +279,7 @@ contract FlightSuretyApp {
     function getFlightKey
                         (
                             address airline,
-                            string flight,
+                            string memory flight,
                             uint256 timestamp
                         )
                         pure
@@ -294,7 +295,7 @@ contract FlightSuretyApp {
                                 address account         
                             )
                             internal
-                            returns(uint8[3])
+                            returns(uint8[3] memory)
     {
         uint8[3] memory indexes;
         indexes[0] = getRandomIndex(account);

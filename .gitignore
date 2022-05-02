@@ -64,3 +64,8 @@ typings/
 .env
 
 ~$*.pptx
+
+package-lock.json
+.vscode/
+.key
+.secret
