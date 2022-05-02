@@ -1,6 +1,6 @@
 
 var Test = require('../config/testConfig.js');
-//var BigNumber = require("@ethersproject/bignumber");
+//var BigNumber = require('bignumber.js');
 
 // Watch contract events
 const STATUS_CODE_UNKNOWN = 0;

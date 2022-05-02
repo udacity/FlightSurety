@@ -1,7 +1,7 @@
 
 var FlightSuretyApp = artifacts.require("FlightSuretyApp");
 var FlightSuretyData = artifacts.require("FlightSuretyData");
-var BigNumber = require("@ethersproject/bignumber");
+var BigNumber = require('bignumber.js');
 
 var Config = async function (accounts) {
 
@@ -31,7 +31,7 @@ var Config = async function (accounts) {
   return {
     owner: owner,
     firstAirline: firstAirline,
-    weiMultiple: (BigNumber.BigNumber.from(10)).pow(18),
+    weiMultiple: (new BigNumber(10)).pow(18),
     testAddresses: testAddresses,
     flightSuretyData: flightSuretyData,
     flightSuretyApp: flightSuretyApp
