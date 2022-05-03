@@ -48,8 +48,8 @@ module.exports = {
     fallback: {
       "assert": false,
       "crypto": false,
-      "http": false,
-      "https": false,
+      "http": require.resolve("stream-http"),
+      "https": require.resolve("https-browserify"),
       "os": false,
       "process": false,
       "stream": false,
