@@ -39,6 +39,9 @@ module.exports = {
     new webpack.DefinePlugin({
       "process.env": {}
     }),
+    new webpack.ProvidePlugin({
+      Buffer: ['buffer', 'Buffer'],
+    })
   ],
   resolve: {
     extensions: [".js"],
@@ -50,7 +53,8 @@ module.exports = {
       "os": false,
       "process": false,
       "stream": false,
-      "url": false
+      "url": false,
+      "buffer": require.resolve("buffer"),
     }
   },
   devServer: {
