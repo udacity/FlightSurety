@@ -9,6 +9,14 @@ import './flightsurety.css';
     let result = null;
     let contract = new Contract('localhost', () => {
 
+        contract.flightSuretyApp.events.FlightStatusInfo({fromBlock: 0}, function (error, event){
+            if (error) console.log(error)
+            else
+            {
+                display('Oracles', 'Trigger oracles', [ { label: 'Fetch Flight Status', error: error, value: event + ' ' + event.returnValues.flight + ' ' + event.returnValues.timestamp} ]);
+            }
+        });
+
         // Read transaction
         contract.isOperational((error, result) => {
             console.log(error,result);

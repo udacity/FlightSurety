@@ -4,6 +4,7 @@ import Config from './config.json';
 import Web3 from 'web3';
 var BigNumber = require('bignumber.js');
 
+
 export default class Contract {
     constructor(network, callback) {
 
@@ -20,6 +21,7 @@ export default class Contract {
 
         this.appAddress = config.appAddress;
     }
+
 
     initialize(callback) {
         this.web3.eth.getAccounts((error, accts) => {
@@ -40,7 +42,6 @@ export default class Contract {
             console.log("appAddress: " + this.appAddress);
             let counter = 1;
 
-            // TODO: register 2 airlines properly
             this.airlines.push(self.appAddress);
             while(this.airlines.length < 2) {
                 let curr_accts = accts[counter++]
@@ -54,7 +55,6 @@ export default class Contract {
                 this.fundedAirlines.push(curr_accts);
             }
 
-            // TODO:register 2 passengers properly
             while(this.passengers.length < 2) {
                 this.passengers.push(accts[counter++]);
             }
@@ -175,7 +175,7 @@ export default class Contract {
             };
 
             self.flightSuretyApp.methods
-                .registerFlight(payload.flight, payload.destination, payload.timestamp)
+                .registerFlight(payload.airlineAddress, payload.flight, payload.destination, payload.timestamp)
                 .call({from: payload.airlineAddress}, (error, result) => {
                     if (error)
                     {
@@ -184,11 +184,13 @@ export default class Contract {
                     }
                     else
                     {
-                        self.flights.push(payload.flight);
+                        
+                        self.flights.push([payload.flight,'@', payload.timestamp].join(''));
                         this.updateDataLists('flights-insurance', this.flights);
                         this.updateDataLists('flight-oracle', this.flights);
                         this.updateDataLists('flights-withdraw', this.flights);
                         console.log("flight registration successful!");
+                        console.log("Fligt_Registration", payload.airlineAddress, payload.flight, payload.timestamp);
                         callback(error, payload);
                     }
                 });
@@ -286,13 +288,18 @@ export default class Contract {
             .call({ from: self.owner}, callback);
         }
 
-        fetchFlightStatus(flight, callback) {
+        fetchFlightStatus(flightAndTime, callback) {
             let self = this;
+            let data = flightAndTime.split('@');
             let payload = {
                 airline: self.airlines[0],
-                flight: flight,
-                timestamp: Math.floor(Date.now() / 1000)
+                flight: data[0],
+                timestamp: data[1]
             };
+            console.log("fetchFlightStatus");
+            console.log("airline: ", payload.airline);
+            console.log("flight: ", payload.flight);
+            console.log("timestamp: ", payload.timestamp);
 
             self.flightSuretyApp.methods
                 .fetchFlightStatus(payload.airline, payload.flight, payload.timestamp)

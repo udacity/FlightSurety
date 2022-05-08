@@ -7,14 +7,14 @@ import express from 'express';
 
 let config = Config['localhost'];
 let web3 = new Web3(new Web3.providers.WebsocketProvider(config.url.replace('http', 'ws')));
-web3.eth.defaultAccount = web3.eth.accounts[0];
 let flightSuretyApp = new web3.eth.Contract(FlightSuretyApp.abi, config.appAddress);
 let flightSuretyData = new web3.eth.Contract(FlightSuretyData.abi, config.dataAddress);
 
+web3.eth.defaultAccount = web3.eth.accounts[0];
 let oracles = [];
 
 const ORACLES_COUNT = 20; 
-// const ORACLES_COUNT = 20; 
+
 // skip first 20 accounts for passengers, airlines and so on..
 const ORACLES_OFFSET = 20;
 
@@ -49,6 +49,7 @@ web3.eth.getAccounts((error, accts) => {
   .getOracleRegistrationFee().call({from:owner}, (error, fee) => {
           console.log("oracle fee: " + fee);
           //based from oracles.js test code
+          
           for(let a=ORACLES_OFFSET; a<ORACLES_COUNT + ORACLES_OFFSET; a++) {
               let curr_accts = accts[a];
 
@@ -79,15 +80,24 @@ flightSuretyApp.events.OracleRequest({ fromBlock: 0 }, function (error, event) {
     let flight = event.returnValues.flight;
     let timestamp = event.returnValues.timestamp;
 
-    // randomize result to simulate a functioning oracle
-    let statusCode = STATUS_ARRAY[Math.floor(Math.random() * STATUS_ARRAY.length)];
-
+    let statusCode;
     for(let idx=0; idx<oracles.length; idx++) {
-      if(oracles[idx].index.includes(String(index))) {
+      // randomize result to simulate a functioning oracle
+      if(oracles[idx].index.includes((index))) {
+
+        statusCode = STATUS_ARRAY[Math.floor(Math.random() * STATUS_ARRAY.length)];
+        console.log("random: ", Math.floor(Math.random() * STATUS_ARRAY.length));
+        console.log("Array-length", STATUS_ARRAY.length);
+        console.log("statusCode", statusCode);
+
+        // .submitOracleResponse(index, airline, flight, timestamp, STATUS_CODE_LATE_AIRLINE)
         flightSuretyApp.methods
         .submitOracleResponse(index, airline, flight, timestamp, statusCode)
         .send({from: oracles[idx].address}, (error, result) => {
-            console.log('\nOracle-Reply', idx, statusCode, flight, timestamp);
+            // if(error)
+            //   console.log(error)
+            console.log('\nOracle-Reply', airline, idx, statusCode, flight, timestamp);
+
         });
       }
     }
@@ -95,16 +105,14 @@ flightSuretyApp.events.OracleRequest({ fromBlock: 0 }, function (error, event) {
 });
 
 // flightSuretyApp.events.FlightStatusInfo({fromBlock: 0}, function (error, event){
-flightSuretyApp.events.FlightStatusInfo(function (error, event){
-// flightSuretyApp.events.OracleReport(function (error, event){
 
-    let airline = event.returnValues.airline;
-    let flight = event.returnValues.flight;
-    let timestamp = event.returnValues.timestamp;
-    let status = event.returnValues.status;
+//     let airline = event.returnValues.airline;
+//     let flight = event.returnValues.flight;
+//     let timestamp = event.returnValues.timestamp;
+//     let status = event.returnValues.status;
 
-    console.log('\nFlight-Status', airline, status, flight, timestamp);
-});
+//     console.log('\nFlight-Status', airline, status, flight, timestamp);
+// });
 
 
 const app = express();

@@ -31,7 +31,7 @@
         <br>
 
         <h5 class="form-header" data-component="header">
-        Check specific flight status 
+        Check specific flight status (flight@timestamp) 
         </h5>
         <input class="myinput" type="text" id="flight" list="flight-oracle"> <br><br>
         <datalist class="mydatalist" id="flight-oracle"></datalist>
@@ -78,8 +78,8 @@
         Register new Flights
         </h5>
         <div class="flightsRegisterNew">
-            <label class="form">Flight-ID</label><br>
-            <input class="myinput" type="text" id="flight-number" placeholder="KUL123"> <br><br>
+            <label class="form">Flight-ID </label><br>
+            <input class="myinput" type="text" id="flight-number" placeholder="KUL123" onkeydown="return /[a-zA-Z0-9]/u.test(event.key)"> <br><br>
             <label class="form">Destination</label><br>
             <input class="myinput" type="text" id="destination" placeholder="Kuala Lumpur" ><br><br>
             <label class="form">Airline</label><br>
@@ -102,7 +102,7 @@
             <label class="form">Passenger<br>
             <input class="myinput" type="text" id="passenger-ins" list="passenger-insurance"><br><br>
             <datalist class="mydatalist" id="passenger-insurance"></datalist>
-            <label class="form">Flight</label><br>
+            <label class="form">Flight (flight@timestamp)</label><br>
             <input class="myinput" type="text" id="flight-ins" list="flights-insurance"><br><br>
             <datalist class="mydatalist" id="flights-insurance"></datalist>
             <label class="form">Insurance</label><br>

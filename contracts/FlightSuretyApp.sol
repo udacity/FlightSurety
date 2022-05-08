@@ -107,6 +107,49 @@ contract FlightSuretyApp {
         return flightSuretyData.isOperational();  // Modify to call data contract's status
     }
 
+    // from https://stackoverflow.com/questions/47129173/how-to-convert-uint-to-string-in-solidity
+    function uintToString(uint v) constant returns (string str) {
+            uint maxlength = 100;
+            bytes memory reversed = new bytes(maxlength);
+            uint i = 0;
+            while (v != 0) {
+                uint remainder = v % 10;
+                v = v / 10;
+                reversed[i++] = byte(48 + remainder);
+            }
+            bytes memory s = new bytes(i + 1);
+            for (uint j = 0; j <= i; j++) {
+                s[j] = reversed[i - j];
+            }
+            str = string(s);
+    }
+
+    // from: https://ethereum.stackexchange.com/a/58342/79209
+    function addressToString(address _address) public pure returns(string memory) {
+        bytes32 _bytes = bytes32(uint256(_address));
+        bytes memory HEX = "0123456789abcdef";
+        bytes memory _string = new bytes(42);
+        _string[0] = '0';
+        _string[1] = 'x';
+        for(uint i = 0; i < 20; i++) {
+            _string[2+i*2] = HEX[uint8(_bytes[i + 12] >> 4)];
+            _string[3+i*2] = HEX[uint8(_bytes[i + 12] & 0x0f)];
+        }
+        return string(_string);
+    }
+
+    function bytes32ToStr(bytes32 _bytes32) public pure returns (string) {
+
+        // string memory str = string(_bytes32);
+        // TypeError: Explicit type conversion not allowed from "bytes32" to "string storage pointer"
+        // thus we should fist convert bytes32 to bytes (to dynamically-sized byte array)
+
+        bytes memory bytesArray = new bytes(32);
+        for (uint256 i; i < 32; i++) {
+            bytesArray[i] = _bytes32[i];
+            }
+        return string(bytesArray);
+    }
     /********************************************************************************************/
     /*                                     SMART CONTRACT FUNCTIONS                             */
     /********************************************************************************************/
@@ -144,6 +187,7 @@ contract FlightSuretyApp {
 
     function registerFlight
                                 (
+                                 address airline,
                                  string flight,
                                  string location,
                                  uint256 timestamp
@@ -151,7 +195,7 @@ contract FlightSuretyApp {
                                 external
                                 requireIsOperational
     {
-        bytes32 key = getFlightKey(msg.sender, flight, timestamp);
+        bytes32 key = getFlightKey(airline, flight, timestamp);
         require(flights[key].isRegistered == false, "Flight can only be registered once");
         flights[key] = Flight ({
                                     isRegistered: true,
@@ -159,7 +203,7 @@ contract FlightSuretyApp {
                                     location: location,
                                     statusCode:STATUS_CODE_UNKNOWN,
                                     updatedTimestamp: timestamp,
-                                    airline: msg.sender
+                                    airline: airline
                                 });
     }
 
@@ -170,7 +214,7 @@ contract FlightSuretyApp {
     function processFlightStatus
                                 (
                                     address airline,
-                                    string memory flight,
+                                    string flight,
                                     uint256 timestamp,
                                     uint8 statusCode
                                 )
@@ -178,7 +222,7 @@ contract FlightSuretyApp {
                                 requireIsOperational
     {
         bytes32 key = getFlightKey(airline, flight, timestamp);
-        require(flights[key].isRegistered, "Flight does not exists");
+        // require(flights[key].isRegistered, string(abi.encodePacked("Flight ", flight, " @ ", uintToString(timestamp), " @ ", addressToString(airline), " does not exists")));
 
         flights[key].statusCode = statusCode;
         address passenger = msg.sender;
@@ -316,11 +360,9 @@ contract FlightSuretyApp {
         // Information isn't considered verified until at least MIN_RESPONSES
         // oracles respond with the *** same *** information
         // emit OracleReport(airline, flight, timestamp, statusCode);
-        emit FlightStatusInfo(airline, flight, timestamp, statusCode);
-        if (oracleResponses[key].responses[statusCode].length >= MIN_RESPONSES) {
-        // if (true) {
 
-            // emit FlightStatusInfo(airline, flight, timestamp, statusCode);
+        if (oracleResponses[key].responses[statusCode].length >= MIN_RESPONSES) {
+            emit FlightStatusInfo(airline, flight, timestamp, statusCode);
 
             // Handle flight status as appropriate
             processFlightStatus(airline, flight, timestamp, statusCode);

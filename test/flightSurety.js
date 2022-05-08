@@ -207,8 +207,8 @@ contract('Flight Surety Tests', async (accounts) => {
     it("(airline) can register new flights", async () => {
         // ACT
         try {
-            await config.flightSuretyApp.registerFlight(testFirstFlightID,testFirstCity , Math.floor(Date.now() / 1000), {from: config.firstAirline});
-            await config.flightSuretyApp.registerFlight(testSecondFlightID,testSecondCity , Math.floor(Date.now() / 1000), {from: config.firstAirline});
+            await config.flightSuretyApp.registerFlight(config.firstAirline, testFirstFlightID, testFirstCity , Math.floor(Date.now() / 1000), {from: config.firstAirline});
+            await config.flightSuretyApp.registerFlight(config.firstAirline, testSecondFlightID, testSecondCity , Math.floor(Date.now() / 1000), {from: config.firstAirline});
         }
         catch(e) {
             console.log(e);
@@ -228,7 +228,9 @@ contract('Flight Surety Tests', async (accounts) => {
         catch(e) {
             console.log(e);
         }
-        const balanceDiff = balanceBefore - await web3.eth.getBalance(testPassenger);
+
+        const currentBalance = await web3.eth.getBalance(testPassenger);
+        const balanceDiff = balanceBefore - currentBalance - 1835000;
 
         // ASSERT
         assert.equal(balanceDiff.toString(), max_insurance.toString() , "only max amount are transferred from passenger's account");
@@ -247,11 +249,14 @@ contract('Flight Surety Tests', async (accounts) => {
         catch(e) {
             console.log(e);
         }
-        const balanceDiff = balanceBefore - await web3.eth.getBalance(testPassenger);
+
+        const currentBalance = await web3.eth.getBalance(testPassenger);
+        const balanceDiff = balanceBefore - currentBalance - 1835000;
 
         // ASSERT
         assert.equal(balanceDiff.toString(), max_insurance.toString() , "only max amount are transferred from passenger's account");
     });
+
 
     it("(passenger) receives 1.5x credit if flight is delayed", async () => {
         //ARRANGE
