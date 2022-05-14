@@ -71,7 +71,7 @@ contract AirlineData {
     /**
      * @dev Gets an airline id by name.
      */
-    function getAirlineId(string calldata name) external view returns(bytes32 id){
+    function getAirlineId(string name) external view returns(bytes32 id){
         bytes memory temp = bytes(name);
         require(temp.length > 0, "'name' must be a valid string.");
         return _getAirlineId(name);
@@ -84,7 +84,7 @@ contract AirlineData {
     /**
     * @dev Checks an airlines registration.
     */
-    function isAirlineRegistered(string calldata name) external view returns(bool) {
+    function isAirlineRegistered(string name) external view returns(bool) {
         bytes memory temp = bytes(name);
         require(temp.length > 0, "'name' must be a valid string.");
         return _isAirlineRegistered(name);
@@ -97,7 +97,7 @@ contract AirlineData {
     /**
     * @dev Checks an airlines operational status.
     */
-    function isAirlineOperational(string calldata name) external view returns(bool){
+    function isAirlineOperational(string name) external view returns(bool){
         bytes memory temp = bytes(name);
         require(temp.length > 0, "'name' must be a valid string.");
         return _isAirlineOperational(name);

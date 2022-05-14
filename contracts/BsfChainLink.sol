@@ -6,6 +6,15 @@ import "../node_modules/openzeppelin-solidity/contracts/math/SafeMath.sol";
 contract OracleData {
     using SafeMath for uint256;
 
+    struct ResponseInfo {
+        uint8 status;
+        uint256 timestamp;
+    }
+
+    uint256 private REGISTRATION_FEE = 0.1 ether;
+
+    uint8 private nonce = 0;
+
     event OracleReport(address airline, string flight, uint256 timestamp, uint8 status);
 
     // Event fired when flight status request is submitted
@@ -25,7 +34,7 @@ contract OracleData {
 
         uint8[3] memory indexes = generateIndexes(msg.sender);
 
-        oracles[msg.sender] = Oracle({
+        _oracles[msg.sender] = Oracle({
                                         isRegistered: true,
                                         indexes: indexes
                                     });
@@ -114,8 +123,8 @@ contract OracleData {
                             external
                             returns(uint8[3])
     {
-        require(oracles[msg.sender].isRegistered, "Not registered as an oracle");
-        return oracles[msg.sender].indexes;
+        require(_oracles[msg.sender].isRegistered, "Not registered as an oracle");
+        return _oracles[msg.sender].indexes;
     }
 
     /**

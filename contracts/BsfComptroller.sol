@@ -63,15 +63,15 @@ interface IBsfComptroller {
     /**
      * @dev Checks access to {key:string} for {caller:address}
      */
-    function access(string calldata key, address caller) external view returns(bool hasAccess);
+    function access(string key, address caller) external view returns(bool hasAccess);
     /**
      * @dev Grants access to {key:string} for {grantee:address}
      */
-    function grantAccess(string calldata key, address grantee) external onlyOwner returns(bool);
+    function grantAccess(string key, address grantee) external returns(bool);
     /**
      * @dev Revokes access to {key:string} for {revokee:address}
      */
-    function revokeAccess(string calldata key, address revokee) external onlyOwner returns(bool);
+    function revokeAccess(string key, address revokee) external returns(bool);
 }
 
 contract BsfComptroller is Ownable, IBsfComptroller {
@@ -93,7 +93,7 @@ contract BsfComptroller is Ownable, IBsfComptroller {
     function _existsContract(bytes32 id) internal returns (bool exists){
         exists = _authorized[id].deployed != address(0);
     }
-    function existsContract(string memory key) external view returns(bool exists){
+    function existsContract(string key) external view returns(bool exists){
         return _existsContract(_getContractId(key));
     }
 
@@ -103,15 +103,15 @@ contract BsfComptroller is Ownable, IBsfComptroller {
         enabled = c.enabled;
         deployed = c.deployed;
     }
-    function getContract(string memory key) external view returns (bytes32, string memory, bool, address) {
+    function getContract(string key) external view returns (bytes32, string memory, bool, address) {
         return _getContract(key);
     }
 
     function _getContractId(string memory key) internal view returns (bytes32 id) {
-        id = keccak256(abi.encodePacked(_bsf_contract, key));
+        id = keccak256(abi.encodePacked(_bsf_comptroller, key));
     }
-    function getContractId(string memory key) external view returns(bytes32 id){
-        return _getContractId(deployed);
+    function getContractId(string key) external view returns(bytes32 id){
+        return _getContractId(key);
     }
 
     function _registerContract(bytes32 id, address deployed) internal returns(bool) {
@@ -121,7 +121,7 @@ contract BsfComptroller is Ownable, IBsfComptroller {
         });
         return true;
     }
-    function registerContract(string memory key, 
+    function registerContract(string key, 
                               address deployed)
                               external
                               onlyOwner
@@ -141,7 +141,7 @@ contract BsfComptroller is Ownable, IBsfComptroller {
         c.deployed = deployed;
         return c.deployed == deployed;
     }
-    function setContractDeployed(string memory key, address deployed) external returns(bool){
+    function setContractDeployed(string key, address deployed) external returns(bool){
         uint256 id = _getContractId(key);
         require(_existsContract(id), "The contract specified by 'key' doesn't exist.");
         if(_setContractDeployed(id, deployed)){
@@ -151,30 +151,30 @@ contract BsfComptroller is Ownable, IBsfComptroller {
         return false;
     }
 
-    function access(string calldata key, address caller) external view returns(bool hasAccess){
+    function access(string key, address caller) external view returns(bool hasAccess){
         require(_existsContract(_getContractId(key)), "");
         require(caller != address(0), "");
         hasAccess = _access[_getAccessId(key, caller)];
     }
 
     function _getAccessId(string memory key, address accessor) internal {
-        return keccak256(abi.encodePacked(key,access));
+        return keccak256(abi.encodePacked(key,accessor));
     }
 
     function _grantAccess(string memory key, address grantee) internal returns(bool) {
-        _access[_getAccessId(key, accessor)] = true;
+        _access[_getAccessId(key, grantee)] = true;
         return true;
     }
-    function grantAccess(string calldata key, address grantee) external onlyOwner returns(bool) {
+    function grantAccess(string key, address grantee) external onlyOwner returns(bool) {
         require(_existsContract(_getContractId(key)), "");
         return grantAccess(key, grantee);
     }
 
     function _revokeAccess(string memory key, address revokee) internal returns(bool) {
-        _access[_getAccessId(key, accessor)] = false;
+        _access[_getAccessId(key, revokee)] = false;
         return true;
     }
-    function revokeAccess(string calldata key, address revokee) external onlyOwner returns(bool) {
+    function revokeAccess(string key, address revokee) external onlyOwner returns(bool) {
         require(_existsContract(_getContractId(key)), "");
         return _revokeAccess(key, revokee);
     }

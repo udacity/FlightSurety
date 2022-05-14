@@ -6,10 +6,10 @@ import "../../node_modules/openzeppelin-solidity/contracts/token/ERC721/ERC721To
 import "../../node_modules/openzeppelin-solidity/contracts/ownership/Ownable.sol";
 import "../BsfComptroller.sol";
 
-contract AirlineNft is ERC721Token, Ownable {
+contract InsuranceNft is ERC721Token, Ownable {
 
     IBsfComptroller _comptroller;
-    string private _key = "bsf.airline.nft";
+    string private _key = "bsf.insurance.nft";
 
     constructor(string __name, 
                 string __symbol,
@@ -20,7 +20,7 @@ contract AirlineNft is ERC721Token, Ownable {
     }
 
     modifier authorized() {
-        require(_comptroller.access(_key, msg.sender), "BSF Contract access required.");
+        require(_comptroller.access(_key, msg.sender), "BSF contract access required.");
         _;
     }
 
@@ -28,7 +28,7 @@ contract AirlineNft is ERC721Token, Ownable {
         return allTokens[allTokens.length - 1].add(1);
     }
 
-    function mint() external authorized {
+    function mint(string memory ) external authorized {
         _mint(msg.sender, _getNextTokenId());
     }
 }

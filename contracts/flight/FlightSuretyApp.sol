@@ -20,6 +20,8 @@ contract SuretyApp is Ownable {
     string internal _bsf_airline_vote = "bsf.airline.vote";
     string internal _bsf_flight = "bsf.flight";
 
+    string private _bsf_airline_nft = "bsf.airline.nft";
+
     /**
     * @dev Unknown Status
     */

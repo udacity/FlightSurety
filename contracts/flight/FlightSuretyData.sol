@@ -6,7 +6,7 @@ import "../../node_modules/openzeppelin-solidity/contracts/math/SafeMath.sol";
 
 import "../BsfComptroller.sol";
 import "./AirlineData.sol";
-import "../InsuranceData.sol";
+import "../insurance/InsuranceData.sol";
 import "./FlightData.sol";
 import "../FundData.sol";
 import "../PayoutData.sol";
@@ -91,9 +91,9 @@ contract SuretyData is Ownable,
     /**
     * @dev Calculates the fee for specified fee type.
     */
-    function calculateFee(FeeType fee, uint256 value) external view returns(uint256 fee) {
-        require(fee == FeeType.Airline || fee == FeeType.Fund || fee == FeeType.Insurance, "'fee' is an unsupported type.");
-        return _calculateFee(fee, value);
+    function calculateFee(FeeType fee_, uint256 value) external view returns(uint256 fee) {
+        require(fee_ == FeeType.Airline || fee_ == FeeType.Fund || fee_ == FeeType.Insurance, "'fee' is an unsupported type.");
+        fee = _calculateFee(fee_, value);
     }
     /**
     * @dev Get operating status of contract

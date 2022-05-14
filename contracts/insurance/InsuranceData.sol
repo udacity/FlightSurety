@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.4.24;
 
-import "../node_modules/openzeppelin-solidity/contracts/math/SafeMath.sol";
+import "../../node_modules/openzeppelin-solidity/contracts/math/SafeMath.sol";
 
 contract InsuranceData {
     using SafeMath for uint256;
@@ -51,8 +51,10 @@ contract InsuranceData {
     */
     mapping(address => uint256) _insuranceCount;
 
+    event PayoutCredited(address indexed account, uint256 payout);
+
    /**
-    * @dev Buy insurance for a flight
+    * @dev Buy insurance
     */   
     function buy
                             (                             
@@ -63,9 +65,10 @@ contract InsuranceData {
 
     function _credit(bytes32 _contract, uint256 value) private {
         Insurance bond = _contracts[_contract];
-        //require(bond.payable, "Insurance contract must be in a 'payable' state.");
-        //_payouts[bond.account]
-        //payouts[insured] = payout;
+        uint256 payout = bond.value;
+        bond.value = 0;
+        _payouts[bond.account] = payout;
+        emit PayoutCredited(bond.account, payout);
     }
 
     /**
@@ -107,6 +110,6 @@ contract InsuranceData {
                               uint256 value)
                               external
          returns(bool ret){
-
+             return false;
     }
 }
