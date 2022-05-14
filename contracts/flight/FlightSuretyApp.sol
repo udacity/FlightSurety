@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.4.24;
 
-import "../node_modules/openzeppelin-solidity/contracts/ownership/Ownable.sol";
-import "../node_modules/openzeppelin-solidity/contracts/math/SafeMath.sol";
-import "./BsfComptroller.sol";
-import "./SuretyData.sol";
+import "../../node_modules/openzeppelin-solidity/contracts/ownership/Ownable.sol";
+import "../../node_modules/openzeppelin-solidity/contracts/math/SafeMath.sol";
+import "../BsfComptroller.sol";
+import "./FlightSuretyData.sol";
 
 contract SuretyApp is Ownable {
     using SafeMath for uint256;
@@ -108,11 +108,11 @@ contract SuretyApp is Ownable {
     * @param backend {address} SuretyData Contract
     */
     constructor
-                                (
-                                    address comptroller,
-                                    address backend
-                                ) 
-                                public 
+            (
+                address comptroller,
+                address backend
+            ) 
+            public 
     {
         require(comptroller != address(0), "'comptroller' cannot be equal to burn address.");
         _operational = true;
@@ -158,7 +158,6 @@ contract SuretyApp is Ownable {
         success = _data.registerAirline(account, name);
         votes = _data.getAirlineVotes(account, name);
     }
-
 
    /**
     * @dev Register a future flight for insuring.

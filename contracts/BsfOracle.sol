@@ -13,7 +13,6 @@ contract OracleData {
     // they fetch data and submit a response
     event OracleRequest(uint8 index, address airline, string flight, uint256 timestamp);
 
-
     // Register an oracle with the contract
     function registerOracle
                             (

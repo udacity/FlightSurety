@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.4.24;
 
-import "../node_modules/openzeppelin-solidity/contracts/math/SafeMath.sol";
+import "../../node_modules/openzeppelin-solidity/contracts/math/SafeMath.sol";
 
 contract AirlineData {
     using SafeMath for uint256;
@@ -9,48 +9,43 @@ contract AirlineData {
     string private _bsf_airline = "bsf.airline";
     string private _bsf_airline_vote = "bsf.airline.vote";
 
+    uint256 private _airlineCount;
+
     /**
     * @dev Defines an airline.
     */
     struct Airline {
         address account;
         string name;
-        bool registered;
         bool operational;
         /**
          * @dev Vote expiration timestamp
          */
-        uint256 vote;
-    }
-    struct AirlineVote {
+        uint256 period;
         /**
-        * @dev Account that cast the vote.
-        */
-        address account;
+         * @dev Operational votes received
+         */
+        uint256 votes;
         /**
-        * Yay or nay.
-        */
-        bool choice;
+         * @dev Operation vote threshold
+         */
+        uint256 threshold;
     }
 
     /**
     * @dev Current registration rate for airlines.
     */
-    uint256 private _feeAirline = 1 ether;
+    uint256 private _fee = 1 ether;
 
     /**
      * @dev Current vote period.
      */
-    uint256 private _voteAirline = 2 days;
+    uint256 private _period = 2 days;
 
     /**
     * @dev Airlines accessor.
     */
     mapping(bytes32 => Airline) _airlines;
-    /**
-     * @dev Airline votes accessor.
-     */
-    mapping(bytes32 => AirlineVote[]) _airlineVotes;
 
     /**
     * @dev Event for airline registration.
@@ -64,6 +59,10 @@ contract AirlineData {
     * TODO: Document
     */
     event AirlineVoteRegistered(bytes32 id, bool choice, address indexed account);
+
+    function getAirlineCount() external view returns(uint256 count) {
+        count = _airlineCount;
+    }
 
     function _getAirlineId(string memory name) private view returns(bytes32 id){
         return keccak256(abi.encodePacked(_bsf_airline, name));
@@ -79,7 +78,8 @@ contract AirlineData {
     }
 
     function _isAirlineRegistered(string memory name) private view returns(bool){
-        return _airlines[keccak256(abi.encodePacked(_bsf_airline,name))].registered;
+        bytes32 id = _getAirlineId(name);
+        return airlines[id].account != address(0);
     }
     /**
     * @dev Checks an airlines registration.
@@ -127,21 +127,19 @@ contract AirlineData {
     /**
     * @dev Registers an account as an airline.
     */
-    function _registerAirline(address account, string memory name, bool registered, bool operational) private returns(bool success) {
+    function _registerAirline(address account, string memory name, bool operational, uint256 period) private returns(bool success) {
         bytes32 id = _getAirlineId(name);
-        uint256 period = block.timestamp.add(_voteAirline);
         _airlines[id] = Airline({
             account: account,
-            registered: registered,
             isOperational: operational,
             vote: period
         });
-        emit AirlineRegistered(id, name);
+        emit AirlineRegistered(id, name, operational, period);
         success = true;
     }
 
     function _registerAirlineVote(bytes32 id, bool choice) private {
-        _airlineVotes[id].push(AirlineVote({account: msg.sender,choice:choice}));
+        _votes[id].push(choice);
         emit AirlineVoteRegistered(id, choice, msg.sender);
     }
    /**
@@ -155,7 +153,12 @@ contract AirlineData {
         returns (bool registered) {
             uint256 id = keccak256(abi.encodePacked(_bsf_airline,name));
             require(_airlines[id].registered == false, "Airline is already registered.");
-            registered = _registerAirline(account, name);
+            if(_airlineCount <= 2) {
+                registered = _registerAirline(account, name, true, uint256(0));
+                return;
+            }
+            uint256 period = block.timestamp.add(_period);
+            registered = _registerAirline(account, name, false, period);
     }
 
     /**
@@ -168,7 +171,8 @@ contract AirlineData {
         returns(bool registered) {
             require(_existsAirline(name), "The airline must exist.");
             (uint256 id,,,,,uint256 vote) = _getAirline(name);
-            require(block.timestamp - vote > 0, "The voting period has expired.");
+            uint256 stamp = block.timestamp;
+            require((stamp - vote) > 0, "The voting period has expired.");
             registered = _registerAirlineVote(id, choice);
     }
 }

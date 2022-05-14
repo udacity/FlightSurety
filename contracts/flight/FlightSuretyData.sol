@@ -1,15 +1,15 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.4.24;
 
-import "../node_modules/openzeppelin-solidity/contracts/ownership/Ownable.sol";
-import "../node_modules/openzeppelin-solidity/contracts/math/SafeMath.sol";
+import "../../node_modules/openzeppelin-solidity/contracts/ownership/Ownable.sol";
+import "../../node_modules/openzeppelin-solidity/contracts/math/SafeMath.sol";
 
-import "./BsfComptroller.sol";
+import "../BsfComptroller.sol";
 import "./AirlineData.sol";
-import "./InsuranceData.sol";
+import "../InsuranceData.sol";
 import "./FlightData.sol";
-import "./FundData.sol";
-import "./PayoutData.sol";
+import "../FundData.sol";
+import "../PayoutData.sol";
 
 contract SuretyData is Ownable, 
                              AirlineData, 
@@ -45,7 +45,10 @@ contract SuretyData is Ownable,
     * @dev Constructor
     * @dev The deploying account becomes contractOwner
     */
-    constructor (address comptroller) public
+    constructor (
+                    address comptroller
+                ) 
+                public
     {
         _transferOwnership(msg.sender);
         _registerAirline(contractOwner, "Frontier Airlines");
