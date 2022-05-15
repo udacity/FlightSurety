@@ -8,14 +8,12 @@ import "../BsfComptroller.sol";
 import "./AirlineData.sol";
 import "../insurance/InsuranceData.sol";
 import "./FlightData.sol";
-import "../FundData.sol";
 import "../PayoutData.sol";
 
 contract SuretyData is Ownable, 
                              AirlineData, 
                              InsuranceData, 
                              FlightData,
-                             FundData, 
                              PayoutData {
     using SafeMath for uint256;
 

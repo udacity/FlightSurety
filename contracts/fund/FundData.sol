@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.4.24;
 
-import "../node_modules/openzeppelin-solidity/contracts/math/SafeMath.sol";
+import "../../node_modules/openzeppelin-solidity/contracts/math/SafeMath.sol";
 
 contract FundData {
     using SafeMath for uint256;
@@ -12,6 +12,8 @@ contract FundData {
     * @dev Current rate for registering and adding liquidity to a fund.
     */
     uint256 private _feeFund = 0.01;
+
+    bool private _operational;
 
     /**
     * @dev Defines a surety fund.
@@ -56,6 +58,15 @@ contract FundData {
     */
     event FundContribution(bytes32 id, uint256 amount, address indexed account);
 
+    /**
+    * @dev Event for surety fund contribution withdrawal
+    */
+    event FundContributionWithdrawal(bytes32 id, uint256 amount, address indexed account);
+
+    constructor (){
+        _operational = true;
+    }
+
     function _existsFund(string memory name) private view returns(bool) {
         return _funds[getFundKey(name)].owner != address(0);
     }
@@ -63,14 +74,9 @@ contract FundData {
     /**
     * @dev Determines if a fund with the specified name exists.
     */
-    function existsFund(string memory name) external view returns(bool){
+    function existsFund(string name) external view returns(bool){
         return _existsFund(name);
     }
-
-    /**
-    * @dev Event for surety fund contribution withdrawal
-    */
-    event FundContributionWithdrawal(bytes32 id, uint256 amount, address indexed account);
 
     function _getFundCount(address owner) private returns(uint256 count){
         return _fundCount[owner];

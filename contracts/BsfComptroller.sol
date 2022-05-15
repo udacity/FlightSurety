@@ -167,7 +167,7 @@ contract BsfComptroller is Ownable, IBsfComptroller {
     }
     function grantAccess(string key, address grantee) external onlyOwner returns(bool) {
         require(_existsContract(_getContractId(key)), "");
-        return grantAccess(key, grantee);
+        return _grantAccess(key, grantee);
     }
 
     function _revokeAccess(string memory key, address revokee) internal returns(bool) {
