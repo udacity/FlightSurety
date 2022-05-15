@@ -4,16 +4,17 @@ pragma solidity >=0.4.24;
 import "../../node_modules/openzeppelin-solidity/contracts/ownership/Ownable.sol";
 import "../../node_modules/openzeppelin-solidity/contracts/math/SafeMath.sol";
 import "../BsfComptroller.sol";
+import "../BsfContract.sol";
 import "./FlightSuretyData.sol";
 
-contract SuretyApp is Ownable {
+contract SuretyApp is BsfContract {
     using SafeMath for uint256;
 
     /********************************************************************************************/
     /*                                       DATA VARIABLES                                     */
     /********************************************************************************************/
     string internal _bsf_surety_app = "bsf.surety.app";
-    string internal _bsf_surety_data = "bsf.surety.data";
+    string internal _bsf_surety__data = "bsf.surety._data";
     string internal _bsf_contract = "bsf.contract";
     string internal _bsf_fund = "bsf.fund";
     string internal _bsf_airline = "bsf.airline";
@@ -21,6 +22,7 @@ contract SuretyApp is Ownable {
     string internal _bsf_flight = "bsf.flight";
 
     string private _bsf_airline_nft = "bsf.airline.nft";
+    string private _bsf_insurance_nft = "bsf.insurance.nft";
 
     /**
     * @dev Unknown Status
@@ -61,27 +63,11 @@ contract SuretyApp is Ownable {
     /**
     * @dev SuretyData accessor.
     */
-    SuretyData private data;
-
-    /**
-    * @dev Operational status of the contract.
-    */
-    bool private _operational;
+    SuretyData internal _data;
  
     /********************************************************************************************/
     /*                                       FUNCTION MODIFIERS                                 */
     /********************************************************************************************/
-
-    /**
-    * @dev Modifier that requires the "_operational" boolean variable to be "true"
-    *      This is used on all state changing functions to pause the contract in 
-    *      the event there is an issue that needs to be fixed
-    */
-    modifier requireOperational() 
-    {
-        require(_operational, "Contract is not currently operational.");  
-        _;
-    }
 
     modifier requireFee(FeeType feeType){
         uint256 fee = _data.fee(feeType);
@@ -89,16 +75,6 @@ contract SuretyApp is Ownable {
         _;
     }
 
-    modifier requireValidString(string memory value){
-        bytes memory temp = bytes(name);
-        require(temp.length > 0, "'name' must be a valid string.");
-        _;
-    }
-
-    modifier requireValidAddress(address account){
-        require(account != address(0), "'account' cannot be equal to burn address.");
-        _;
-    }
 
     /********************************************************************************************/
     /*                                       CONSTRUCTOR                                        */
@@ -120,18 +96,6 @@ contract SuretyApp is Ownable {
         _operational = true;
         _comptroller = IBsfComptroller(comptroller);
         _data = SuretyData(backend);
-    }
-
-    /********************************************************************************************/
-    /*                                       UTILITY FUNCTIONS                                  */
-    /********************************************************************************************/
-
-    function operational() 
-                            public 
-                            pure 
-                            returns(bool) 
-    {
-        return _data.operational();  // Modify to call data contract's status
     }
 
     /********************************************************************************************/
@@ -183,7 +147,7 @@ contract SuretyApp is Ownable {
 
         (airlineAddress,name,,,) = _data.getAirline(airline);
 
-        //data.registerFlight(status, block.timestamp, );
+        //_data.registerFlight(status, block.timestamp, );
     }
     
 

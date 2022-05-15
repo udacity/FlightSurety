@@ -5,12 +5,13 @@ import "../../node_modules/openzeppelin-solidity/contracts/ownership/Ownable.sol
 import "../../node_modules/openzeppelin-solidity/contracts/math/SafeMath.sol";
 
 import "../BsfComptroller.sol";
+import "../BsfContract.sol";
 import "./AirlineData.sol";
 import "../insurance/InsuranceData.sol";
 import "./FlightData.sol";
 import "../PayoutData.sol";
 
-contract SuretyData is Ownable, 
+contract SuretyData is BsfContract, 
                              AirlineData, 
                              InsuranceData, 
                              FlightData,

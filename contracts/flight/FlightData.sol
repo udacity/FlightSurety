@@ -3,7 +3,9 @@ pragma solidity >=0.4.24;
 
 import "../../node_modules/openzeppelin-solidity/contracts/math/SafeMath.sol";
 
-contract FlightData {
+import "../BsfContract.sol";
+
+contract FlightData is BsfContract {
     using SafeMath for uint256;
 
     string private _bsf_flight = "bsf.flight";

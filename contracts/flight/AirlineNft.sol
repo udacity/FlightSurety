@@ -3,12 +3,10 @@ pragma solidity >=0.4.24;
 
 import "../../node_modules/openzeppelin-solidity/contracts/math/SafeMath.sol";
 import "../../node_modules/openzeppelin-solidity/contracts/token/ERC721/ERC721Token.sol";
-import "../../node_modules/openzeppelin-solidity/contracts/ownership/Ownable.sol";
-import "../BsfComptroller.sol";
 
-contract AirlineNft is ERC721Token, Ownable {
 
-    IBsfComptroller _comptroller;
+contract AirlineNft is ERC721Token, BsfContract {
+
     string private _key = "bsf.airline.nft";
 
     modifier authorized() {

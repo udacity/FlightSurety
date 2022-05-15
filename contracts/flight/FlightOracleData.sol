@@ -6,6 +6,8 @@ import "../../node_modules/openzeppelin-solidity/contracts/math/SafeMath.sol";
 contract OracleData {
     using SafeMath for uint256;
 
+    string private _key = "bsf.oracle.flight";
+
     event OracleReport(address airline, string flight, uint256 timestamp, uint8 status);
 
     // Event fired when flight status request is submitted

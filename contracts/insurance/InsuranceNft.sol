@@ -5,8 +5,9 @@ import "../../node_modules/openzeppelin-solidity/contracts/math/SafeMath.sol";
 import "../../node_modules/openzeppelin-solidity/contracts/token/ERC721/ERC721Token.sol";
 import "../../node_modules/openzeppelin-solidity/contracts/ownership/Ownable.sol";
 import "../BsfComptroller.sol";
+import "../BsfContract.sol";
 
-contract InsuranceNft is ERC721Token, Ownable {
+contract InsuranceNft is ERC721Token, BsfContract {
 
     IBsfComptroller _comptroller;
     string private _key = "bsf.insurance.nft";
