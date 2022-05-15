@@ -5,7 +5,55 @@ import "../../node_modules/openzeppelin-solidity/contracts/math/SafeMath.sol";
 
 import "../BsfContract.sol";
 
-contract AirlineData is BsfContract {
+interface IAirlineRouter {
+    /**
+    * @dev Event for airline registration.
+    */
+    event AirlineRegistered(bytes32 id, string name, address indexed account);
+    /**
+    * @dev Event for airline status change, operational / non-operational.
+    */
+    event AirlineStatusChange(address indexed account, bool operational);
+    /**
+    * TODO: Document
+    */
+    event AirlineVoteRegistered(bytes32 id, bool choice, address indexed account);
+
+    function getAirlineCount() returns(uint256 count);
+
+    /**
+     * @dev Gets an airline id by name.
+     */
+    function getAirlineId(string name) returns(bytes32 id);
+
+    /**
+    * @dev Checks an airlines registration.
+    */
+    function isAirlineRegistered(string name) returns(bool);
+
+    /**
+    * @dev Checks an airlines operational status.
+    */
+    function isAirlineOperational(string name) external view returns(bool);
+
+    /**
+     * Get(s) an airline 'object' by name.
+     */
+    function getAirline(string name) returns(address,string,bool,bool,uint256);
+
+   /**
+    * @dev Add an airline to the registration queue
+    * @dev Can only be called from FlightSuretyApp contract
+    */   
+    function registerAirline(address account, string name) returns (bool registered);
+
+    /**
+     * @dev Registers an airline vote.
+     */
+    function registerAirlineVote(string name, bool choice) returns(bool registered);
+}
+
+contract AirlineData is BsfContract, IAirlineRouter {
     using SafeMath for uint256;
 
     uint256 internal _airlineCount;
@@ -14,8 +62,13 @@ contract AirlineData is BsfContract {
     * @dev Defines an airline.
     */
     struct Airline {
+        /**
+         * @dev Account that the airline has verified.
+         */
         address account;
-        string name;
+        /**
+         * @dev operational status of airline for contract purposes.
+         */
         bool operational;
         /**
          * @dev Vote expiration timestamp
@@ -123,6 +176,11 @@ contract AirlineData is BsfContract {
         returns(address,string memory,bool,bool,uint256) {
             return _getAirline(name);
     }
+
+    function _getVoteId(uint256 id_, address voter) internal returns(bytes32 id) {
+        id = keccak256(abi.encodePacked(id_, voter));
+    }
+
     /**
     * @dev Registers an account as an airline.
     */

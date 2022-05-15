@@ -8,15 +8,28 @@ import "./BsfComptroller.sol";
 
 contract BsfContract is Ownable {
 
+
     string internal _bsf_comptroller = "bsf.comptroller";
+    string internal _bsf_contract = "bsf.contract";
+    string internal _bsf_surety_app = "bsf.surety.app";
+    string internal _bsf_surety_data = "bsf.surety.data";
     string internal _bsf_token = "bsf.token";
 
     string internal _bsf_airline = "bsf.airline";
     string internal _bsf_airline_nft = "bsf.airline.nft";
+    string internal _bsf_airline_data = "bsf.airline.data";
     string internal _bsf_airline_vote = "bsf.airline.vote";
+
+    string internal _bsf_flight = "bsf.flight";
+    string internal _bsf_flight_nft = "bsf.flight.nft";
+    string internal _bsf_flight_data = "bsf.flight.data";
 
     string internal _bsf_insurance = "bsf.insurance";
     string internal _bsf_insurance_nft = "bsf.insurance.nft";
+    string internal _bsf_insurance_data = "bsf.insurance.data";
+
+    string internal _bsf_payout = "bsf.payout";
+    string internal _bsf_payout_data = "bsf.payout.data";
 
     /**
     * @dev Operational status of the contract.
@@ -59,8 +72,9 @@ contract BsfContract is Ownable {
         _;
     }
 
-    function changeComptroller(address new_) external onlyOwner returns(bool success) {
+    function changeComptroller(address new_) external onlyOwner requireValidAddress(new_) returns(bool success) {
         _comptroller = IBsfComptroller(new_);
+        emit ComptrollerChanged(new_, msg.sender);
         success = true;
     }
 

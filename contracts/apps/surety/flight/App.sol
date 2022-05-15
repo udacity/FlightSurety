@@ -1,28 +1,18 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.4.24;
 
-import "../../node_modules/openzeppelin-solidity/contracts/ownership/Ownable.sol";
-import "../../node_modules/openzeppelin-solidity/contracts/math/SafeMath.sol";
-import "../BsfComptroller.sol";
-import "../BsfContract.sol";
-import "./FlightSuretyData.sol";
+import "../../../../node_modules/openzeppelin-solidity/contracts/math/SafeMath.sol";
+import "../../../BSFComptroller.sol";
+import "../../../BSFContract.sol";
+import "./Data.sol";
 
-contract SuretyApp is BsfContract {
+contract App is BsfContract {
     using SafeMath for uint256;
 
     /********************************************************************************************/
     /*                                       DATA VARIABLES                                     */
     /********************************************************************************************/
-    string internal _bsf_surety_app = "bsf.surety.app";
-    string internal _bsf_surety__data = "bsf.surety._data";
-    string internal _bsf_contract = "bsf.contract";
-    string internal _bsf_fund = "bsf.fund";
-    string internal _bsf_airline = "bsf.airline";
-    string internal _bsf_airline_vote = "bsf.airline.vote";
-    string internal _bsf_flight = "bsf.flight";
 
-    string private _bsf_airline_nft = "bsf.airline.nft";
-    string private _bsf_insurance_nft = "bsf.insurance.nft";
 
     /**
     * @dev Unknown Status

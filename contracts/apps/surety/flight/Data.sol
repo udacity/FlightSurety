@@ -1,31 +1,14 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.4.24;
 
-import "../../node_modules/openzeppelin-solidity/contracts/ownership/Ownable.sol";
-import "../../node_modules/openzeppelin-solidity/contracts/math/SafeMath.sol";
+import "../../../../node_modules/openzeppelin-solidity/contracts/ownership/Ownable.sol";
+import "../../../../node_modules/openzeppelin-solidity/contracts/math/SafeMath.sol";
 
-import "../BsfComptroller.sol";
-import "../BsfContract.sol";
-import "./AirlineData.sol";
-import "../insurance/InsuranceData.sol";
-import "./FlightData.sol";
-import "../PayoutData.sol";
+import "../../../BsfComptroller.sol";
+import "../../../BsfContract.sol";
 
-contract SuretyData is BsfContract, 
-                             AirlineData, 
-                             InsuranceData, 
-                             FlightData,
-                             PayoutData {
+contract Data is BsfContract {
     using SafeMath for uint256;
-
-    string private _bsf_surety = "bsf.surety";
-
-    /**
-    * @dev Operational status of the contract.
-    */
-    bool private _operational = true;
-
-    IBsfComptroller _comptroller;
 
     /**
     * @dev The fee types supported by the platform.
@@ -49,7 +32,6 @@ contract SuretyData is BsfContract,
                 ) 
                 public
     {
-        _transferOwnership(msg.sender);
         _registerAirline(contractOwner, "Frontier Airlines");
         _registerFund(contractOwner,"General Fund");
         _comptroller = IBsfComptroller(comptroller);
@@ -94,6 +76,7 @@ contract SuretyData is BsfContract,
         require(fee_ == FeeType.Airline || fee_ == FeeType.Fund || fee_ == FeeType.Insurance, "'fee' is an unsupported type.");
         fee = _calculateFee(fee_, value);
     }
+    
     /**
     * @dev Get operating status of contract
     * @return A bool that is the current operating status

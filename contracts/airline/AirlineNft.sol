@@ -4,13 +4,13 @@ pragma solidity >=0.4.24;
 import "../../node_modules/openzeppelin-solidity/contracts/math/SafeMath.sol";
 import "../../node_modules/openzeppelin-solidity/contracts/token/ERC721/ERC721Token.sol";
 
+import "../BsfContract.sol";
+
 
 contract AirlineNft is ERC721Token, BsfContract {
 
-    string private _key = "bsf.airline.nft";
-
     modifier authorized() {
-        require(_comptroller.access(_key, msg.sender), "BSF Contract access required.");
+        require(_comptroller.access(_bsf_airline_nft, msg.sender), "BSF Contract access required.");
         _;
     }
 
