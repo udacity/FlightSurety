@@ -1,9 +1,10 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.4.24;
 
-import "../node_modules/openzeppelin-solidity/contracts/math/SafeMath.sol";
+import "../../node_modules/openzeppelin-solidity/contracts/math/SafeMath.sol";
+import "../BSF/BSFContract.sol";
 
-contract PayoutData {
+contract PayoutData is BSFContract {
     using SafeMath for uint256;
 
     /**

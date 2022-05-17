@@ -1,31 +1,11 @@
 // SPDX-License-Identifier: MIT
-pragma solidity >=0.4.24;
+pragma solidity >=0.4.22 <0.9.0;
 
 import "../../node_modules/openzeppelin-solidity/contracts/math/SafeMath.sol";
 
-import "../airline/AirlineData.sol";
-import "../BsfContract.sol";
+import "../BSF/BsfContract.sol";
 
-interface IFlightRouter {
-    /**
-     * Get(s) an flight 'object' by name.
-     */
-    function getFlight(string name) returns(bytes32,string memory,bool,string memory,uint8,uint256);
-
-    /**
-     * @dev Gets an airline id by name.
-     */
-    function getFlightId(string name, string airline, uint256 timestamp) returns(bytes32 id);
-    
-    /**
-    * @dev Checks an airlines registration.
-    */
-    function isFlightRegistered(string name, string airline, uint256 timestamp) returns(bool);
-    
-    function registerFlight(uint8 status, string airline, string flight, uint256 timestamp);
-}
-
-contract FlightData is BsfContract {
+contract FlightData is BSFContract {
     using SafeMath for uint256;
 
     struct Flight {
@@ -36,15 +16,11 @@ contract FlightData is BsfContract {
         string name;
     }
 
-    IAirlineRouter internal _airlines;
-
     mapping(bytes32 => Flight) private flights;
 
-    constructor(address comptroller_) BsfContract(comptroller_){
-        (bytes32 id, bool enabled, address deployed) = _comptroller.getContract(_bsf_airline_data);
-        if(enabled) {
-            _airlines = IAirlineRouter(deployed);
-        }
+    constructor(address __comptroller, string __key) 
+        BSFContract(__comptroller, __key) {
+
     }
 
     function _getFlight(string memory name) 
@@ -93,7 +69,7 @@ contract FlightData is BsfContract {
         require(!_isFlightRegistered(flight, airline, timestamp), "Flight is already registered.");
     }
 
-    function _registerFlight(uint8 status, address airline, string flight) {
+    function _registerFlight(uint8 status, address airline, string flight) internal {
 
     }
 }

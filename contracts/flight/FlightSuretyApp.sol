@@ -1,18 +1,38 @@
 // SPDX-License-Identifier: MIT
-pragma solidity >=0.4.24;
+pragma solidity >=0.4.22 <0.9.0;
 
-import "../../../../node_modules/openzeppelin-solidity/contracts/math/SafeMath.sol";
-import "../../../BSFComptroller.sol";
-import "../../../BSFContract.sol";
-import "./Data.sol";
+import "../../node_modules/openzeppelin-solidity/contracts/math/SafeMath.sol";
 
-contract App is BsfContract {
+// Base Contract
+import "../BSF/BSFContract.sol";
+
+// Airline Interface
+import "../airline/IAirlineProvider.sol";
+
+// Flight Interface
+import "./IFlightProvider.sol";
+
+// Fund Interface
+import "../fund/IFundProvider.sol";
+
+// Insurance Interface
+import "../insurance/IInsuranceProvider.sol";
+
+// Payout Interface
+import "../payout/IPayoutProvider.sol";
+
+// Token Interface
+import "../BSF/BSF20/IBSF20.sol";
+
+// NFT Interface
+import "../BSF/BSF721/IBSF721.sol";
+
+contract FlightSuretyApp is BSFContract {
     using SafeMath for uint256;
 
     /********************************************************************************************/
     /*                                       DATA VARIABLES                                     */
     /********************************************************************************************/
-
 
     /**
     * @dev Unknown Status
@@ -38,7 +58,6 @@ contract App is BsfContract {
     * @dev Late - Other Status
     */
     uint8 private constant STATUS_CODE_LATE_OTHER = 50;
-
     /**
     * @dev The fee types supported by the platform.
     */
@@ -48,20 +67,21 @@ contract App is BsfContract {
         Insurance
     }
 
-    IBsfComptroller internal _comptroller;
+    IAirlineProvider internal _airlines;
+    IFlightProvider internal _flights;
+    IInsuranceProvider internal _insurances;
+    IPayoutProvider internal _payouts;
 
-    /**
-    * @dev SuretyData accessor.
-    */
-    SuretyData internal _data;
+    event OracleRequest(uint8 index, address airline, string flight, uint256 timestamp);
  
     /********************************************************************************************/
     /*                                       FUNCTION MODIFIERS                                 */
     /********************************************************************************************/
 
-    modifier requireFee(FeeType feeType){
-        uint256 fee = _data.fee(feeType);
-        require(msg.value - fee > 0, "Insufficient value in transaction, please include required fee.");
+    modifier requireFee(uint8 feeType){
+        //uint256 fee = _data.fee(feeType);
+        // TODO: Calculate Fee
+        //require(msg.value - fee > 0, "Insufficient value in transaction, please include required fee.");
         _;
     }
 
@@ -77,20 +97,49 @@ contract App is BsfContract {
     */
     constructor
             (
-                address comptroller,
-                address backend
+                address __comptroller,
+                string __key
             ) 
-            public 
+            BSFContract(__comptroller, __key) 
     {
-        require(comptroller != address(0), "'comptroller' cannot be equal to burn address.");
-        _operational = true;
-        _comptroller = IBsfComptroller(comptroller);
-        _data = SuretyData(backend);
+        require(__comptroller != address(0), "'__comptroller' cannot be equal to burn address.");
+        _configure();
     }
 
-    /********************************************************************************************/
-    /*                                     SMART CONTRACT FUNCTIONS                             */
-    /********************************************************************************************/
+    function _configAirlineProvider() internal {
+        (bool enabled, address deployed) = _getContractAddress(_bsf_airline_data);
+        if(enabled) {
+            _airlines = IAirlineProvider(deployed);
+        }
+    }
+
+    function _configFlightProvider() internal {
+        (bool enabled, address deployed) = _getContractAddress(_bsf_flight_data);
+        if(enabled) {
+            _flights = IFlightProvider(deployed);
+        }
+    }
+
+    function _configInsuranceProvider() internal {
+        (bool enabled, address deployed) = _getContractAddress(_bsf_insurance_data);
+        if(enabled) {
+            _insurances = IInsuranceProvider(deployed);
+        }
+    }
+
+    function _configPayoutProvider() internal {
+        (bool enabled, address deployed) = _getContractAddress(_bsf_payout_data);
+        if(enabled) {
+            _payouts = IPayoutProvider(deployed);
+        }
+    }
+
+    function _configure() internal {
+        _configAirlineProvider();
+        _configFlightProvider();
+        _configInsuranceProvider();
+        _configPayoutProvider();
+    }
 
   
    /**
@@ -100,7 +149,7 @@ contract App is BsfContract {
     */   
     function registerAirline
                             (
-                                string memory name,
+                                string name,
                                 address account
                             )
                             external
@@ -110,9 +159,9 @@ contract App is BsfContract {
                             requireFee(FeeType.Airline)
                             returns(bool success, uint256 votes)
     {
-        require(!_data.isAirlineRegistered(name), "The airline " + name + " is already registered.");
-        success = _data.registerAirline(account, name);
-        votes = _data.getAirlineVotes(account, name);
+        require(!_airlines.isAirlineRegistered(name), "The airline " + name + " is already registered.");
+        success = false;//_data.registerAirline(account, name);
+        votes = 0;//_data.getAirlineVotes(account, name);
     }
 
    /**
@@ -120,8 +169,8 @@ contract App is BsfContract {
     */  
     function registerFlight
                                 (
-                                    address airline,
-                                    string memory flight,
+                                    string airline,
+                                    string flight,
                                     uint8 status
                                 )
                                 external
@@ -129,13 +178,13 @@ contract App is BsfContract {
                                 requireValidAddress(airline)
                                 requireValidString(flight)
     {
-        require(_data.isAirlineRegistered(airline), "The airline " + airline + " is not registered.");
-        require(_data.isAirlineOperational(airline), "The airline " + airline + " is not operational.");
+        require(_airlines.isAirlineRegistered(airline), "The airline " + airline + " is not registered.");
+        require(_airlines.isAirlineOperational(airline), "The airline " + airline + " is not operational.");
 
         address airlineAddress;
         string memory name;
 
-        (airlineAddress,name,,,) = _data.getAirline(airline);
+        (airlineAddress,name,,,) = _airlines.getAirline(airline);
 
         //_data.registerFlight(status, block.timestamp, );
     }
@@ -156,10 +205,10 @@ contract App is BsfContract {
 
         // Generate a unique key for storing the request
         bytes32 key = keccak256(abi.encodePacked(index, airline, flight, timestamp));
-        oracleResponses[key] = ResponseInfo({
-                                                requester: msg.sender,
-                                                isOpen: true
-                                            });
+        // oracleResponses[key] = ResponseInfo({
+        //                                         requester: msg.sender,
+        //                                         isOpen: true
+        //                                     });
 
         emit OracleRequest(index, airline, flight, timestamp);
     }
@@ -193,6 +242,24 @@ contract App is BsfContract {
                         requireOperational
                         returns(bytes32) 
     {
-        return _data.getFlightId(flight, airline, timestamp);
+        return _flights.getFlightId(flight, airline, timestamp);
+    }
+
+    /**
+     * @return {array:int} of three non-duplicating integers from 0-9
+     */
+    function getRandomIndex
+                            (
+                                address account
+                            )
+                            internal
+                            returns (uint8 random)
+    {
+        uint8 maxValue = 10;
+        // Pseudo random number...the incrementing nonce adds variation
+        random = uint8(uint256(keccak256(abi.encodePacked(blockhash(block.number - nonce++), account))) % maxValue);
+        if (nonce > 250) {
+            nonce = 0;  // Can only fetch blockhashes for last 256 blocks so we adapt
+        }
     }
 }   

@@ -1,19 +1,17 @@
 // SPDX-License-Identifier: MIT
-pragma solidity >=0.4.24;
+pragma solidity >=0.4.22 <0.9.0;
 
 import "../../node_modules/openzeppelin-solidity/contracts/math/SafeMath.sol";
 
-import "../BsfContract.sol";
+import "../BSF/BSFContract.sol";
 
-contract InsuranceData is BsfContract {
+contract InsuranceData is BSFContract {
     using SafeMath for uint256;
-
-    string private _bsf_insurance = "bsf.insurance";
 
     /**
     * @dev Current insurance rate.
     */
-    uint256 private _feeInsurance = 0.01;
+    uint256 private _fee = 0.01;
 
     /**
     * @dev Defines an insurance contract.
@@ -55,6 +53,9 @@ contract InsuranceData is BsfContract {
 
     event PayoutCredited(address indexed account, uint256 payout);
 
+    constructor (address __comptroller, string __key) 
+        BSFContract(__comptroller, __key) {}
+
    /**
     * @dev Buy insurance
     */   
@@ -69,7 +70,7 @@ contract InsuranceData is BsfContract {
         Insurance bond = _contracts[_contract];
         uint256 payout = bond.value;
         bond.value = 0;
-        _payouts[bond.account] = payout;
+        //_payouts[bond.account] = payout;
         emit PayoutCredited(bond.account, payout);
     }
 
@@ -77,8 +78,8 @@ contract InsuranceData is BsfContract {
     * @dev Credit insured contracts.
     */
     function credit(address fund, address insured, uint256 value) external pure requireOperational {
-        require((fund != address(0) && insured != address(0)), "Accounts must be valid address.");
-        require(_funds[fund].name.length > 0, "The target fund does not exist.");
+        //require((fund != address(0) && insured != address(0)), "Accounts must be valid address.");
+        //require(_funds[fund].name.length > 0, "The target fund does not exist.");
         require(_contracts[insured].passenger == insured, "Insure was not an insured passenger.");
 
     }
@@ -95,7 +96,8 @@ contract InsuranceData is BsfContract {
     function getNextInsuranceId(address owner) external view returns(bytes32 id) {
         require(owner != address(0), "'owner' must not be burn address.");
         uint256 count = _insuranceCount[owner].add(1);
-        id = _getContractId(owner, count);
+        //id = _getContractId(owner, count);
+        id = bytes32(0);
     }
 
     function _registerInsurance() private returns(bool) {

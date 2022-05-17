@@ -1,32 +1,35 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.4.24;
 
-import "../node_modules/openzeppelin-solidity/contracts/ownership/Ownable.sol";
-import "../node_modules/openzeppelin-solidity/contracts/math/SafeMath.sol";
+import "../../node_modules/openzeppelin-solidity/contracts/ownership/Ownable.sol";
+import "../../node_modules/openzeppelin-solidity/contracts/math/SafeMath.sol";
 
-import "./BsfComptroller.sol";
+import "./BSFComptroller/IBSFComptroller.sol";
+import "./BSF20/IBSF20.sol";
 
-contract BsfContract is Ownable {
+contract BSFContract is Ownable {
 
-
+    string internal _key;
     string internal _bsf_comptroller = "bsf.comptroller";
     string internal _bsf_contract = "bsf.contract";
-    string internal _bsf_surety_app = "bsf.surety.app";
-    string internal _bsf_surety_data = "bsf.surety.data";
     string internal _bsf_token = "bsf.token";
 
     string internal _bsf_airline = "bsf.airline";
     string internal _bsf_airline_nft = "bsf.airline.nft";
     string internal _bsf_airline_data = "bsf.airline.data";
     string internal _bsf_airline_vote = "bsf.airline.vote";
+    string internal _bsf_airline_app = "bsf.airline.app";
 
     string internal _bsf_flight = "bsf.flight";
     string internal _bsf_flight_nft = "bsf.flight.nft";
     string internal _bsf_flight_data = "bsf.flight.data";
+    string internal _bsf_flight_surety_app = "bsf.flight.surety.app";
+    string internal _bsf_flight_ticket_app = "bsf.flight.ticket.app";
 
     string internal _bsf_insurance = "bsf.insurance";
     string internal _bsf_insurance_nft = "bsf.insurance.nft";
     string internal _bsf_insurance_data = "bsf.insurance.data";
+    string internal _bsf_insurance_fund = "bsf.insurance.fund";
 
     string internal _bsf_payout = "bsf.payout";
     string internal _bsf_payout_data = "bsf.payout.data";
@@ -36,13 +39,19 @@ contract BsfContract is Ownable {
     */
     bool internal _operational;
 
-    IBsfComptroller internal _comptroller;
-    //IBSF20 internal _token;
+    IBSFComptroller internal _comptroller;
+    IBSF20 internal _token;
 
-    constructor(address comptroller_) {
+    event ComptrollerChanged(address newAddress, address deployer);
+
+    constructor(address comptroller_, string key_) {
         _operational = true;
-        _comptroller = comptroller_;
-        //_token = _comptroller.getContract(_bsf_token);
+        _comptroller = IBSFComptroller(comptroller_);
+        _key = key_;
+        (bool enabled, address deployed) = _getContractAddress(_bsf_token);
+        if(enabled){
+            _token = IBSF20(deployed);
+        }
     }
 
     modifier authorized(string key) {
@@ -73,7 +82,7 @@ contract BsfContract is Ownable {
     }
 
     function changeComptroller(address new_) external onlyOwner requireValidAddress(new_) returns(bool success) {
-        _comptroller = IBsfComptroller(new_);
+        _comptroller = IBSFComptroller(new_);
         emit ComptrollerChanged(new_, msg.sender);
         success = true;
     }
@@ -89,5 +98,11 @@ contract BsfContract is Ownable {
     function changeOperational(bool status) external onlyOwner returns(bool success){
         _operational = status;
         return true;
+    }
+
+    function _getContractAddress(string key) internal returns(bool enabled, address deployed) {
+        (, bool e, address d) = _comptroller.getContract(key);
+        enabled = e;
+        deployed = d;
     }
 }

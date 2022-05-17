@@ -3,57 +3,9 @@ pragma solidity >=0.4.24;
 
 import "../../node_modules/openzeppelin-solidity/contracts/math/SafeMath.sol";
 
-import "../BsfContract.sol";
+import "../BSF/BSFContract.sol";
 
-interface IAirlineRouter {
-    /**
-    * @dev Event for airline registration.
-    */
-    event AirlineRegistered(bytes32 id, string name, address indexed account);
-    /**
-    * @dev Event for airline status change, operational / non-operational.
-    */
-    event AirlineStatusChange(address indexed account, bool operational);
-    /**
-    * TODO: Document
-    */
-    event AirlineVoteRegistered(bytes32 id, bool choice, address indexed account);
-
-    function getAirlineCount() returns(uint256 count);
-
-    /**
-     * @dev Gets an airline id by name.
-     */
-    function getAirlineId(string name) returns(bytes32 id);
-
-    /**
-    * @dev Checks an airlines registration.
-    */
-    function isAirlineRegistered(string name) returns(bool);
-
-    /**
-    * @dev Checks an airlines operational status.
-    */
-    function isAirlineOperational(string name) external view returns(bool);
-
-    /**
-     * Get(s) an airline 'object' by name.
-     */
-    function getAirline(string name) returns(address,string,bool,bool,uint256);
-
-   /**
-    * @dev Add an airline to the registration queue
-    * @dev Can only be called from FlightSuretyApp contract
-    */   
-    function registerAirline(address account, string name) returns (bool registered);
-
-    /**
-     * @dev Registers an airline vote.
-     */
-    function registerAirlineVote(string name, bool choice) returns(bool registered);
-}
-
-contract AirlineData is BsfContract, IAirlineRouter {
+contract AirlineData is BSFContract {
     using SafeMath for uint256;
 
     uint256 internal _airlineCount;
@@ -66,6 +18,7 @@ contract AirlineData is BsfContract, IAirlineRouter {
          * @dev Account that the airline has verified.
          */
         address account;
+        string name;
         /**
          * @dev operational status of airline for contract purposes.
          */
@@ -114,6 +67,9 @@ contract AirlineData is BsfContract, IAirlineRouter {
     */
     event AirlineVoteRegistered(bytes32 id, bool choice, address indexed account);
 
+    constructor(address __comptroller, string __key) 
+        BSFContract(__comptroller, __key) {}
+
     function getAirlineCount() external view returns(uint256 count) {
         count = _airlineCount;
     }
@@ -144,7 +100,7 @@ contract AirlineData is BsfContract, IAirlineRouter {
     }
 
     function _isAirlineOperational(string memory name) private view returns(bool){
-        return _airlines[keccak256(abi.encodePacked(_bsf_airline,name))].isOperational;
+        return _airlines[_getAirlineId(name)].operational;
     }
 
     /**
@@ -161,10 +117,10 @@ contract AirlineData is BsfContract, IAirlineRouter {
         return _airlines[id].account != address(0);
     }
 
-    function _getAirline(string memory name) private returns(bytes32,address,string memory,bool,bool,uint256){
+    function _getAirline(string memory name) private returns(bytes32,address,string memory,bool,uint256){
         bytes32 id = _getAirlineId(name);
         Airline ret = _airlines[id];
-        return (id,ret.account,ret.name,ret.registered,ret.operational,ret.vote);
+        return (id,ret.account,ret.name,ret.operational,ret.votes);
     }
     /**
      * Get(s) an airline 'object' by name.
@@ -199,6 +155,8 @@ contract AirlineData is BsfContract, IAirlineRouter {
         if(choice) {
             _airlines[id].votes.add(1);
         }
+
+        _voted[id] = true;
         
         emit AirlineVoteRegistered(id, choice, msg.sender);
     }
@@ -211,8 +169,7 @@ contract AirlineData is BsfContract, IAirlineRouter {
         pure
         requireOperational
         returns (bool registered) {
-            uint256 id = keccak256(abi.encodePacked(_bsf_airline,name));
-            require(_airlines[id].registered == false, "Airline is already registered.");
+            require(!_existsAirline(name), "Airline is already registered.");
             if(_airlineCount <= 2) {
                 registered = _registerAirline(account, name, true, uint256(0));
                 return;
@@ -230,10 +187,11 @@ contract AirlineData is BsfContract, IAirlineRouter {
         requireOperational
         returns(bool registered) {
             require(_existsAirline(name), "The airline must exist.");
-            (uint256 id,,,,,uint256 vote) = _getAirline(name);
+            (bytes32 id,,,,uint256 vote) = _getAirline(name);
             uint256 stamp = block.timestamp;
             require((stamp - vote) > 0, "The voting period has expired.");
-            require(_voted[_getVoteId(id,msg.sender)] != true, "No more votes left to cast.");
-            registered = _registerAirlineVote(id, choice);
+            bytes32 voteId = _getVoteId(id, msg.sender);
+            require(_voted[voteId] != true, "No more votes left to cast.");
+            registered = _registerAirlineVote(voteId, choice);
     }
 }

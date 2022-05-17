@@ -3,17 +3,15 @@ pragma solidity >=0.4.24;
 
 import "../../node_modules/openzeppelin-solidity/contracts/math/SafeMath.sol";
 
-contract FundData {
-    using SafeMath for uint256;
+import "../BSF/BSFContract.sol";
 
-    string private _bsf_fund = "bsf.fund";
+contract FundData is BSFContract {
+    using SafeMath for uint256;
 
     /**
     * @dev Current rate for registering and adding liquidity to a fund.
     */
-    uint256 private _feeFund = 0.01;
-
-    bool private _operational;
+    uint256 private _fee = 0.01;
 
     /**
     * @dev Defines a surety fund.
@@ -63,12 +61,12 @@ contract FundData {
     */
     event FundContributionWithdrawal(bytes32 id, uint256 amount, address indexed account);
 
-    constructor (){
-        _operational = true;
+    constructor (address __comptroller, string __key) 
+        BSFContract(__comptroller, __key) {
     }
 
-    function _existsFund(string memory name) private view returns(bool) {
-        return _funds[getFundKey(name)].owner != address(0);
+    function _existsFund(string memory name) internal view returns(bool) {
+        return _funds[_getFundId(name)].owner != address(0);
     }
 
     /**
@@ -90,7 +88,7 @@ contract FundData {
     }
 
     function _getFundFee(uint256 value) private view returns(uint256 fee){
-        fee = value.mul(_fee_fund);
+        fee = value.mul(_fee);
     }
 
     /**
@@ -101,7 +99,7 @@ contract FundData {
     }
 
     function _getFundId(address owner, uint256 count) private returns(bytes32 id){
-        id = keccak256(abi.encodePacked(_bsf_fund, owner, count));
+        id = keccak256(abi.encodePacked(_bsf_insurance_fund, owner, count));
     }
 
     /**
@@ -135,13 +133,13 @@ contract FundData {
                            uint256 payout,
                            uint256 contribution) 
                            private returns (bool) {
-        funds[account] = Fund({
+        _funds[account] = SuretyFund({
             owner: account,
             name: name,
             amount: amount,
             ratePayout: payout,
             rateContribution: contribution,
-            isPublic: isPublic
+            isPublic: pub
         });
         emit FundRegistered(account, name);
     }
@@ -151,9 +149,6 @@ contract FundData {
     */
     function registerFund(string name, bool isPublic) external requireOperational {
         require(!_existsFund(name), "A fund with this name already exists.");
-        uint256 _fee = _calculateFee(FeeType.Fund, msg.value);
-        uint256 amount = msg.value - _fee;
-        require(amount > 0, "Appropriate fee not supplied.");
-        _registerFund(msg.sender, name, amount ,isPublic);
+        _registerFund(msg.sender, name, msg.value ,isPublic);
     }
 }
