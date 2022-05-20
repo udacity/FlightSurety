@@ -57,7 +57,7 @@ contract AirlineData is BSFContract {
     /**
     * @dev Event for airline registration.
     */
-    event AirlineRegistered(bytes32 id, string name, address indexed account);
+    event AirlineRegistered(bytes32 id, string name, address indexed account, uint256 period);
     /**
     * @dev Event for airline status change, operational / non-operational.
     */
@@ -75,7 +75,7 @@ contract AirlineData is BSFContract {
     }
 
     function _getAirlineId(string memory name) private view returns(bytes32 id){
-        return keccak256(abi.encodePacked(_bsf_airline, name));
+        return keccak256(abi.encodePacked(_key, name));
     }
 
     /**
@@ -106,10 +106,12 @@ contract AirlineData is BSFContract {
     /**
     * @dev Checks an airlines operational status.
     */
-    function isAirlineOperational(string name) external view returns(bool){
-        bytes memory temp = bytes(name);
-        require(temp.length > 0, "'name' must be a valid string.");
-        return _isAirlineOperational(name);
+    function isAirlineOperational(string name) 
+             external 
+             view 
+             requireValidString(name)
+             returns(bool){
+                return _isAirlineOperational(name);
     }
 
     function _existsAirline(string memory name) private returns(bool){
@@ -129,7 +131,7 @@ contract AirlineData is BSFContract {
         external 
         requireOperational 
         requireValidString(name)
-        returns(address,string memory,bool,bool,uint256) {
+        returns(bytes32,address,string memory,bool,uint256) {
             return _getAirline(name);
     }
 
@@ -139,13 +141,17 @@ contract AirlineData is BSFContract {
 
     /**
     * @dev Registers an account as an airline.
+    * @todo Create _getThreshold to determine the number of airlines that exact and the threshold of votes required to register.
     */
     function _registerAirline(address account, string memory name, bool operational, uint256 period) private returns(bool success) {
         bytes32 id = _getAirlineId(name);
         _airlines[id] = Airline({
             account: account,
-            isOperational: operational,
-            vote: period
+            name: name,
+            operational: operational,
+            vote: period,
+            threshold: 0,
+            period: period
         });
         emit AirlineRegistered(id, name, operational, period);
         success = true;

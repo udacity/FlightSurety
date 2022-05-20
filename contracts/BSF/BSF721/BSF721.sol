@@ -9,12 +9,12 @@ import "../../../node_modules/openzeppelin-solidity/contracts/AutoIncrementing.s
 import "../BSFComptroller/BSFComptroller.sol";
 import "../BSFContract.sol";
 
-contract BSF721 is AutoIncrementing,ERC721Token,Ownable {
+contract BSF721 is ERC721Token,Ownable {
     using SafeMath for uint256;
     using AutoIncrementing for AutoIncrementing.Counter;
 
     IBSFComptroller internal _comptroller;
-    Counter internal _id;
+    AutoIncrementing.Counter internal _id;
     bool internal _mint_lock = false;
     string internal _key;
 
@@ -26,7 +26,7 @@ contract BSF721 is AutoIncrementing,ERC721Token,Ownable {
     mapping(uint256 => TokenData) internal _data;
 
     modifier authorized() {
-        require(_comptroller.access(_key, msg.sender), _key + " access required.");
+        require(_comptroller.access(_key, msg.sender), string(abi.encodePacked(_key," access required.")));
         _;
     }
 

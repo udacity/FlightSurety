@@ -54,8 +54,8 @@ contract BSFContract is Ownable {
         }
     }
 
-    modifier authorized(string key) {
-        require(_comptroller.access(key, msg.sender), "BSF Contract access required.");
+    modifier authorized() {
+        require(_comptroller.access(_key, msg.sender), "BSF Contract access required.");
         _;
     }
 
