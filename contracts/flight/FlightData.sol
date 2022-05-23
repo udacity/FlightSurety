@@ -12,7 +12,7 @@ contract FlightData is BSFContract {
         bool registered;
         uint8 status;
         uint256 timestamp;        
-        address airline;
+        string airline;
         string name;
     }
 
@@ -23,50 +23,64 @@ contract FlightData is BSFContract {
 
     }
 
-    function _getFlight(string memory name) 
-        private 
+    function _getFlight(bytes32 fid) 
+        internal 
         returns(bytes32,string memory,bool,string memory,uint8,uint256)
     {
-        bytes32 id = _getFlightId(name);
-        Flight ret = flights[id];
-        return (id,ret.name,ret.registered,ret.airline,ret.status,ret.timestamp);
+        Flight ret = flights[fid];
+        return (fid,ret.name,ret.registered,ret.airline,ret.status,ret.timestamp);
     }
 
     /**
      * Get(s) an flight 'object' by name.
      */
-    function getFlight(string name) 
-        external 
-        requireOperational 
-        requireValidString(name)
-        returns(bytes32,string memory,bool,string memory,uint8,uint256) {
-            return _getFlight(name);
+    function getFlight(bytes32 fid) 
+             external 
+             requireOperational 
+             returns(bytes32,string memory,bool,string memory,uint8,uint256) {
+        return _getFlight(fid);
     }
 
-    function _getFlightId(string memory name, string airline, uint256 timestamp) private view returns(bytes32 id){
-        id = keccak256(abi.encodePacked(_bsf_flight, name));
+    function _getFlightId(bytes32 aid, string name, uint256 timestamp) 
+             internal 
+             view 
+             returns(bytes32 id){
+        id = keccak256(abi.encodePacked(_bsf_flight, aid, name, timestamp));
     }
 
     /**
      * @dev Gets an airline id by name.
      */
-    function getFlightId(string name, string airline, uint256 timestamp) external view requireValidString(name) returns(bytes32 id){
-        return _getFlightId(name);
+    function getFlightId(bytes32 aid, string name, uint256 timestamp) 
+             external 
+             view 
+             requireValidString(name) 
+             returns(bytes32 id){
+        return _getFlightId(aid,name,timestamp);
     }
 
-    function _isFlightRegistered(string memory name, string airline, uint256 timestamp) private view returns(bool){
-        return flights[_getFlightId(name, airline, timestamp)].registered;
+    function _isFlightRegistered(bytes32 aid,string name, uint256 timestamp)
+             internal 
+             view 
+             returns(bool){
+        return flights[_getFlightId(aid, name, timestamp)].registered;
     }
     
     /**
     * @dev Checks an airlines registration.
     */
-    function isFlightRegistered(string name, string airline, uint256 timestamp) external view requireValidString(name) returns(bool) {
-        return _isFlightRegistered(name, airline, timestamp);
+    function isFlightRegistered(bytes32 aid, string name, uint256 timestamp) 
+             external 
+             view 
+             requireValidString(name)
+             returns(bool) {
+        return _isFlightRegistered(aid, name, timestamp);
     }
     
-    function registerFlight(uint8 status, string airline, string flight, uint256 timestamp) external requireOperational {
-        require(!_isFlightRegistered(flight, airline, timestamp), "Flight is already registered.");
+    function registerFlight(uint8 status, bytes32 aid, string flight, uint256 timestamp) 
+             external 
+             requireOperational {
+        require(!_isFlightRegistered(aid, flight, timestamp), "Flight is already registered.");
     }
 
     function _registerFlight(uint8 status, address airline, string flight) internal {

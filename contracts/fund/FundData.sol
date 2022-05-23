@@ -11,7 +11,7 @@ contract FundData is BSFContract {
     /**
     * @dev Current rate for registering and adding liquidity to a fund.
     */
-    uint256 private _fee = 0.01;
+    uint256 internal _fee = uint256(0.01);
 
     /**
     * @dev Defines a surety fund.
@@ -98,24 +98,22 @@ contract FundData is BSFContract {
         fee = _getFundFee(value);
     }
 
-    function _getFundId(address owner, uint256 count) private returns(bytes32 id){
-        id = keccak256(abi.encodePacked(_bsf_insurance_fund, owner, count));
+    function _getFundId(string name) private returns(bytes32 id){
+        id = keccak256(abi.encodePacked(_bsf_insurance_fund, name));
     }
 
     /**
      * @dev Gets a fund id by owner / count.
      */
-    function getFundId(address owner, uint256 count) external returns(bytes32 id){
-        id = _getFundId(owner, count);
+    function getFundId(string name) external returns(bytes32 id){
+        id = _getFundId(name);
     }
 
     /**
      * @dev Gets the next fund id for a specified owner
      */
-    function getNextFundId(address owner) external returns(bytes32 id){
-        
-        uint256 count = _getFundCount(owner).add(1);
-        id = _getFundId(owner, count);
+    function getNextFundId(string name) external returns(bytes32 id){
+        id = _getFundId(name);
     }
 
     /**
@@ -133,12 +131,10 @@ contract FundData is BSFContract {
                            uint256 payout,
                            uint256 contribution) 
                            private returns (bool) {
-        _funds[account] = SuretyFund({
+        _funds[_getFundId(name)] = SuretyFund({
             owner: account,
             name: name,
-            amount: amount,
             ratePayout: payout,
-            rateContribution: contribution,
             isPublic: pub
         });
         emit FundRegistered(account, name);

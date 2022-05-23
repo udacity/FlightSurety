@@ -15,6 +15,14 @@ interface IAirlineProvider {
     */
     event AirlineVoteRegistered(bytes32 id, bool choice, address indexed account);
 
+    /**
+     * @dev Gets the current fee for interactions.
+     */
+    function fee() external view returns(uint256 fee_);
+
+    /**
+     * @dev Gets the current airline count.
+     */
     function getAirlineCount() external view returns(uint256 count);
 
     /**

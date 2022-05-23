@@ -70,6 +70,10 @@ contract AirlineData is BSFContract {
     constructor(address __comptroller, string __key) 
         BSFContract(__comptroller, __key) {}
 
+    function fee() external view returns(uint256 fee_){
+        return _fee;
+    }
+
     function getAirlineCount() external view returns(uint256 count) {
         count = _airlineCount;
     }
@@ -135,7 +139,7 @@ contract AirlineData is BSFContract {
             return _getAirline(name);
     }
 
-    function _getVoteId(uint256 id_, address voter) internal returns(bytes32 id) {
+    function _getVoteId(bytes32 id_, address voter) internal returns(bytes32 id) {
         id = keccak256(abi.encodePacked(id_, voter));
     }
 
@@ -149,15 +153,15 @@ contract AirlineData is BSFContract {
             account: account,
             name: name,
             operational: operational,
-            vote: period,
+            votes: period,
             threshold: 0,
             period: period
         });
-        emit AirlineRegistered(id, name, operational, period);
+        emit AirlineRegistered(id, name, account, period);
         success = true;
     }
 
-    function _registerAirlineVote(bytes32 id, bool choice) private {
+    function _registerAirlineVote(bytes32 id, bool choice) private returns(bool) {
         if(choice) {
             _airlines[id].votes.add(1);
         }
@@ -165,6 +169,7 @@ contract AirlineData is BSFContract {
         _voted[id] = true;
         
         emit AirlineVoteRegistered(id, choice, msg.sender);
+        return true;
     }
    /**
     * @dev Add an airline to the registration queue
