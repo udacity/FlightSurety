@@ -11,7 +11,7 @@ contract InsuranceData is BSFContract {
     /**
     * @dev Current insurance rate.
     */
-    uint256 private _fee = 0.01;
+    uint256 private _fee = uint256(0.01);
 
     /**
     * @dev Defines an insurance contract.
@@ -80,7 +80,7 @@ contract InsuranceData is BSFContract {
     function credit(address fund, address insured, uint256 value) external pure requireOperational {
         //require((fund != address(0) && insured != address(0)), "Accounts must be valid address.");
         //require(_funds[fund].name.length > 0, "The target fund does not exist.");
-        require(_contracts[insured].passenger == insured, "Insure was not an insured passenger.");
+        //require(_contracts[insured].passenger == insured, "Insure was not an insured passenger.");
 
     }
 

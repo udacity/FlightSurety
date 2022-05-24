@@ -19,8 +19,9 @@ contract FundData is BSFContract {
     struct SuretyFund {
         address owner;
         string name;
-        uint256 ratePayout;
-        bool isPublic;
+        uint256 payout;
+        uint256 contribution;
+        bool pub;
     }
     
     /**
@@ -126,25 +127,26 @@ contract FundData is BSFContract {
     */
     function _registerFund(address account, 
                            string memory name,
-                           uint256 amount,
                            bool pub,
                            uint256 payout,
                            uint256 contribution) 
                            private returns (bool) {
-        _funds[_getFundId(name)] = SuretyFund({
+        bytes32 id = _getFundId(name);
+        _funds[id] = SuretyFund({
             owner: account,
             name: name,
-            ratePayout: payout,
-            isPublic: pub
+            payout: payout,
+            pub: pub,
+            contribution: contribution
         });
-        emit FundRegistered(account, name);
+        emit FundRegistered(id, name, account);
     }
 
     /**
     * @see {_registerFund:function}
     */
-    function registerFund(string name, bool isPublic) external requireOperational {
+    function registerFund(string name, bool pub, uint256 payout, uint256 contribution) external requireOperational {
         require(!_existsFund(name), "A fund with this name already exists.");
-        _registerFund(msg.sender, name, msg.value ,isPublic);
+        _registerFund(msg.sender, name, pub, payout, contribution);
     }
 }
