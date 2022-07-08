@@ -15,27 +15,27 @@ interface IAirlineProvider {
     */
     event AirlineVoteRegistered(bytes32 id, bool choice, address indexed account);
 
-    function getAirlineCount() external view returns(uint256 count);
+    function getAirlineCount() external returns(uint256 count);
 
     /**
      * @dev Gets an airline id by name.
      */
-    function getAirlineId(string calldata) external view returns(bytes32 id);
+    function getAirlineId(string name) external returns(bytes32 id);
 
     /**
     * @dev Checks an airlines registration.
     */
-    function isAirlineRegistered(string calldata) external view returns(bool);
+    function isAirlineRegistered(string name) external returns(bool);
 
     /**
     * @dev Checks an airlines operational status.
     */
-    function isAirlineOperational(string calldata) external view returns(bool);
+    function isAirlineOperational(string name) external returns(bool);
 
     /**
      * Get(s) an airline 'object' by name.
      */
-    function getAirline(string calldata) external view returns(address,string memory,bool,bool,uint256);
+    function getAirline(string name) external returns(address,string memory,bool,bool,uint256);
 
    /**
     * @dev Add an airline to the registration queue

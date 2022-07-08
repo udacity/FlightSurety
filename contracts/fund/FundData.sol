@@ -5,7 +5,12 @@ import "../../node_modules/openzeppelin-solidity/contracts/math/SafeMath.sol";
 
 import "../BSF/BSFContract.sol";
 
-contract FundData is BSFContract {
+import "../utils/IProvider.sol";
+import "../utils/IFeeProvider.sol";
+
+import "./IFundProvider.sol";
+
+contract FundData is BSFContract, IProvider, IFeeProvider, IFundProvider {
     using SafeMath for uint256;
 
     /**

@@ -78,10 +78,23 @@ contract FlightSuretyApp is BSFContract {
     /*                                       FUNCTION MODIFIERS                                 */
     /********************************************************************************************/
 
-    modifier requireFee(uint8 feeType){
-        //uint256 fee = _data.fee(feeType);
-        // TODO: Calculate Fee
-        //require(msg.value - fee > 0, "Insufficient value in transaction, please include required fee.");
+    modifier requireFee(string key){
+        bytes32 h = keccak256(key);
+        if(h == keccak256(_bsf_airline)){
+            require(msg.value >= _airlines.fee(), "");
+        }
+
+        if(h == keccak256(_bsf_flight)){
+            require(msg.value >= _flights.fee(), "");
+        }
+
+        if(h == keccak256(_bsf_insurance)){
+            require(msg.value >= _insurances.fee(), "");
+        }
+
+        if(h == keccak256(_bsf_payout)){
+            require(msg.value >= _payouts.fee(), "");
+        }
         _;
     }
 
@@ -156,7 +169,7 @@ contract FlightSuretyApp is BSFContract {
                             pure
                             requireValidString(name)
                             requireValidAddress(account)
-                            requireFee(FeeType.Airline)
+                            requireFee
                             returns(bool success, uint256 votes)
     {
         require(!_airlines.isAirlineRegistered(name), "The airline " + name + " is already registered.");

@@ -5,7 +5,12 @@ import "../../node_modules/openzeppelin-solidity/contracts/math/SafeMath.sol";
 
 import "../BSF/BSFContract.sol";
 
-contract AirlineData is BSFContract {
+import "../utils/IProvider.sol";
+import "../utils/IFeeProvider.sol";
+
+import "./IAirlineProvider.sol";
+
+contract AirlineData is BSFContract, IProvider, IFeeProvider, IAirlineProvider {
     using SafeMath for uint256;
 
     uint256 internal _airlineCount;
@@ -60,17 +65,22 @@ contract AirlineData is BSFContract {
     event AirlineRegistered(bytes32 id, string name, address indexed account, uint256 period);
     /**
     * @dev Event for airline status change, operational / non-operational.
+    * @param id {airline id}
+    * @param operational {operational status}
     */
-    event AirlineStatusChange(address indexed account, bool operational);
+    event AirlineStatusChange(bytes32 id, bool operational);
     /**
-    * TODO: Document
+    * @dev Event for Airline Vote Registration
+    * @param id {airline id}
+    * @param vid {voter id}
+    * @param choice {yay / nay}
     */
-    event AirlineVoteRegistered(bytes32 id, bool choice, address indexed account);
+    event AirlineVoteRegistered(bytes32 id, bytes32 vid, bool choice);
 
     constructor(address __comptroller, string __key) 
         BSFContract(__comptroller, __key) {}
 
-    function getAirlineCount() external view returns(uint256 count) {
+    function getAirlineCount() external returns(uint256 count) {
         count = _airlineCount;
     }
 
@@ -81,7 +91,7 @@ contract AirlineData is BSFContract {
     /**
      * @dev Gets an airline id by name.
      */
-    function getAirlineId(string name) external view requireValidString(name) returns(bytes32 id){
+    function getAirlineId(string name) external requireValidString(name) returns(bytes32 id){
         return _getAirlineId(name);
     }
 
@@ -107,8 +117,7 @@ contract AirlineData is BSFContract {
     * @dev Checks an airlines operational status.
     */
     function isAirlineOperational(string name) 
-             external 
-             view 
+             external  
              requireValidString(name)
              returns(bool){
                 return _isAirlineOperational(name);
@@ -135,7 +144,7 @@ contract AirlineData is BSFContract {
             return _getAirline(name);
     }
 
-    function _getVoteId(uint256 id_, address voter) internal returns(bytes32 id) {
+    function _getVoteId(bytes32 id_, address voter) internal returns(bytes32 id) {
         id = keccak256(abi.encodePacked(id_, voter));
     }
 
@@ -143,28 +152,29 @@ contract AirlineData is BSFContract {
     * @dev Registers an account as an airline.
     * @todo Create _getThreshold to determine the number of airlines that exact and the threshold of votes required to register.
     */
-    function _registerAirline(address account, string memory name, bool operational, uint256 period) private returns(bool success) {
+    function _registerAirline(address account, string memory name, bool operational, uint256 period) internal returns(bool success) {
         bytes32 id = _getAirlineId(name);
         _airlines[id] = Airline({
             account: account,
             name: name,
             operational: operational,
-            vote: period,
+            votes: period,
             threshold: 0,
             period: period
         });
-        emit AirlineRegistered(id, name, operational, period);
+        emit AirlineRegistered(id, name, account, period);
         success = true;
     }
 
-    function _registerAirlineVote(bytes32 id, bool choice) private {
+    function _registerAirlineVote(bytes32 airlineId, bytes32 voterId, bool choice) internal returns(bool) {
         if(choice) {
-            _airlines[id].votes.add(1);
+            _airlines[airlineId].votes.add(1);
         }
 
-        _voted[id] = true;
+        _voted[voterId] = true;
         
-        emit AirlineVoteRegistered(id, choice, msg.sender);
+        emit AirlineVoteRegistered(airlineId, voterId, choice);
+        return true;
     }
    /**
     * @dev Add an airline to the registration queue
@@ -198,6 +208,6 @@ contract AirlineData is BSFContract {
             require((stamp - vote) > 0, "The voting period has expired.");
             bytes32 voteId = _getVoteId(id, msg.sender);
             require(_voted[voteId] != true, "No more votes left to cast.");
-            registered = _registerAirlineVote(voteId, choice);
+            registered = _registerAirlineVote(id, voteId, choice);
     }
 }

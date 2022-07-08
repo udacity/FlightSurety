@@ -4,7 +4,12 @@ pragma solidity >=0.4.24;
 import "../../node_modules/openzeppelin-solidity/contracts/math/SafeMath.sol";
 import "../BSF/BSFContract.sol";
 
-contract PayoutData is BSFContract {
+import "../utils/IProvider.sol";
+import "../utils/IFeeProvider.sol";
+
+import "./IPayoutProvider.sol";
+
+contract PayoutData is BSFContract, IProvider, IFeeProvider, IPayoutProvider {
     using SafeMath for uint256;
 
     /**
