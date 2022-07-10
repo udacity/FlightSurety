@@ -80,7 +80,12 @@ contract AirlineData is BSFContract, IProvider, IFeeProvider, IAirlineProvider {
     constructor(address __comptroller, string __key) 
         BSFContract(__comptroller, __key) {}
 
+    function fee() external view returns(uint256 fee_){
+        return _fee;
+    }
+
     function getAirlineCount() external returns(uint256 count) {
+
         count = _airlineCount;
     }
 
@@ -166,14 +171,15 @@ contract AirlineData is BSFContract, IProvider, IFeeProvider, IAirlineProvider {
         success = true;
     }
 
-    function _registerAirlineVote(bytes32 airlineId, bytes32 voterId, bool choice) internal returns(bool) {
+
+    function _registerAirlineVote(bytes32 id, bool choice) private returns(bool) {
         if(choice) {
             _airlines[airlineId].votes.add(1);
         }
 
         _voted[voterId] = true;
         
-        emit AirlineVoteRegistered(airlineId, voterId, choice);
+        emit AirlineVoteRegistered(id, choice, msg.sender);
         return true;
     }
    /**

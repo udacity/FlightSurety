@@ -16,7 +16,7 @@ contract FundData is BSFContract, IProvider, IFeeProvider, IFundProvider {
     /**
     * @dev Current rate for registering and adding liquidity to a fund.
     */
-    uint256 private _fee = 0.01;
+    uint256 internal _fee = uint256(0.01);
 
     /**
     * @dev Defines a surety fund.
@@ -24,8 +24,9 @@ contract FundData is BSFContract, IProvider, IFeeProvider, IFundProvider {
     struct SuretyFund {
         address owner;
         string name;
-        uint256 ratePayout;
-        bool isPublic;
+        uint256 payout;
+        uint256 contribution;
+        bool pub;
     }
     
     /**
@@ -103,24 +104,22 @@ contract FundData is BSFContract, IProvider, IFeeProvider, IFundProvider {
         fee = _getFundFee(value);
     }
 
-    function _getFundId(address owner, uint256 count) private returns(bytes32 id){
-        id = keccak256(abi.encodePacked(_bsf_insurance_fund, owner, count));
+    function _getFundId(string name) private returns(bytes32 id){
+        id = keccak256(abi.encodePacked(_bsf_insurance_fund, name));
     }
 
     /**
      * @dev Gets a fund id by owner / count.
      */
-    function getFundId(address owner, uint256 count) external returns(bytes32 id){
-        id = _getFundId(owner, count);
+    function getFundId(string name) external returns(bytes32 id){
+        id = _getFundId(name);
     }
 
     /**
      * @dev Gets the next fund id for a specified owner
      */
-    function getNextFundId(address owner) external returns(bytes32 id){
-        
-        uint256 count = _getFundCount(owner).add(1);
-        id = _getFundId(owner, count);
+    function getNextFundId(string name) external returns(bytes32 id){
+        id = _getFundId(name);
     }
 
     /**
@@ -133,27 +132,26 @@ contract FundData is BSFContract, IProvider, IFeeProvider, IFundProvider {
     */
     function _registerFund(address account, 
                            string memory name,
-                           uint256 amount,
                            bool pub,
                            uint256 payout,
                            uint256 contribution) 
                            private returns (bool) {
-        _funds[account] = SuretyFund({
+        bytes32 id = _getFundId(name);
+        _funds[id] = SuretyFund({
             owner: account,
             name: name,
-            amount: amount,
-            ratePayout: payout,
-            rateContribution: contribution,
-            isPublic: pub
+            payout: payout,
+            pub: pub,
+            contribution: contribution
         });
-        emit FundRegistered(account, name);
+        emit FundRegistered(id, name, account);
     }
 
     /**
     * @see {_registerFund:function}
     */
-    function registerFund(string name, bool isPublic) external requireOperational {
+    function registerFund(string name, bool pub, uint256 payout, uint256 contribution) external requireOperational {
         require(!_existsFund(name), "A fund with this name already exists.");
-        _registerFund(msg.sender, name, msg.value ,isPublic);
+        _registerFund(msg.sender, name, pub, payout, contribution);
     }
 }

@@ -58,14 +58,6 @@ contract FlightSuretyApp is BSFContract {
     * @dev Late - Other Status
     */
     uint8 private constant STATUS_CODE_LATE_OTHER = 50;
-    /**
-    * @dev The fee types supported by the platform.
-    */
-    enum FeeType {
-        Airline,
-        Fund,
-        Insurance
-    }
 
     IAirlineProvider internal _airlines;
     IFlightProvider internal _flights;
@@ -169,10 +161,10 @@ contract FlightSuretyApp is BSFContract {
                             pure
                             requireValidString(name)
                             requireValidAddress(account)
-                            requireFee
+                            requireFee(_bsf_airline)
                             returns(bool success, uint256 votes)
     {
-        require(!_airlines.isAirlineRegistered(name), "The airline " + name + " is already registered.");
+        require(!_airlines.isAirlineRegistered(name), string(abi.encodePacked("The airline ", name, " is already registered.")));
         success = false;//_data.registerAirline(account, name);
         votes = 0;//_data.getAirlineVotes(account, name);
     }
@@ -184,22 +176,21 @@ contract FlightSuretyApp is BSFContract {
                                 (
                                     string airline,
                                     string flight,
-                                    uint8 status
+                                    uint8 status,
+                                    uint256 timestamp
                                 )
                                 external
                                 pure
-                                requireValidAddress(airline)
+                                requireValidString(airline)
                                 requireValidString(flight)
     {
-        require(_airlines.isAirlineRegistered(airline), "The airline " + airline + " is not registered.");
-        require(_airlines.isAirlineOperational(airline), "The airline " + airline + " is not operational.");
+        require(_airlines.isAirlineRegistered(airline), string(abi.encodePacked("The airline ", airline, " is not registered.")));
+        require(_airlines.isAirlineOperational(airline), string(abi.encodePacked("The airline ", airline, " is not operational.")));
 
-        address airlineAddress;
-        string memory name;
 
-        (airlineAddress,name,,,) = _airlines.getAirline(airline);
+        bytes32 aid = _airlines.getAirlineId(airline);
 
-        //_data.registerFlight(status, block.timestamp, );
+        _flights.registerFlight(status, aid, flight, timestamp);
     }
     
 
@@ -246,7 +237,7 @@ contract FlightSuretyApp is BSFContract {
 
     function getFlightId
                         (
-                            address airline,
+                            string airline,
                             string flight,
                             uint256 timestamp
                         )
@@ -255,7 +246,8 @@ contract FlightSuretyApp is BSFContract {
                         requireOperational
                         returns(bytes32) 
     {
-        return _flights.getFlightId(flight, airline, timestamp);
+        bytes32 aid = _airlines.getAirlineId(airline);
+        return _flights.getFlightId(aid, flight, timestamp);
     }
 
     /**

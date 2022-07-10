@@ -28,8 +28,8 @@ contract FlightData is BSFContract, IFlightProvider, IFeeProvider, IProvider {
     }
 
     function _getFlight(bytes32 fid) 
-        private 
-        returns(bytes32,string,bool,bytes32,uint8,uint256)
+        internal 
+        returns(bytes32,string memory,bool,string memory,uint8,uint256)
     {
         Flight ret = flights[fid];
         return (fid,ret.name,ret.registered,ret.airline,ret.status,ret.timestamp);
@@ -71,6 +71,13 @@ contract FlightData is BSFContract, IFlightProvider, IFeeProvider, IProvider {
         returns(bool){
         return flights[fid].registered;
     }
+
+    function _isFlightRegistered(bytes32 aid,string name, uint256 timestamp)
+             internal 
+             view 
+             returns(bool){
+        return flights[_getFlightId(aid, name, timestamp)].registered;
+    }
     
     /**
     * @dev Checks an airlines registration.
@@ -86,11 +93,15 @@ contract FlightData is BSFContract, IFlightProvider, IFeeProvider, IProvider {
     function registerFlight(uint8 status, bytes32 aid, string flight, uint256 timestamp) 
                 external 
                 requireOperational 
-                requireValidString(flight) {
+                requireValidString(flight) returns(bool) {
         require(!_isFlightRegistered(_getFlightId(aid, flight, timestamp)), "Flight is already registered.");
+
+        return _registerFlight(0,aid, name, timestamp);
     }
 
-    function _registerFlight(uint8 status, address airline, string flight) internal {
-
+    function _registerFlight(uint8 status, bytes aid, string flight, uint256 timestamp)
+            internal
+            returns(bytes32) {
+                // TODO: Register flight
     }
 }
