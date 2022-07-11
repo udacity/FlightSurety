@@ -5,15 +5,24 @@ interface IAirlineProvider {
     /**
     * @dev Event for airline registration.
     */
-    event AirlineRegistered(bytes32 id, string name, address indexed account);
+    event AirlineRegistered(bytes32 id, string name, address indexed account, uint256 period);
     /**
     * @dev Event for airline status change, operational / non-operational.
     */
-    event AirlineStatusChange(address indexed account, bool operational);
+    event AirlineStatusChange(bytes32 id, bool operational);
     /**
     * TODO: Document
     */
-    event AirlineVoteRegistered(bytes32 id, bool choice, address indexed account);
+    event AirlineVoteRegistered(bytes32 id, bytes32 vid, bool choice);
+
+    /**
+     * Get(s) the currently configured fee.
+     */
+    function fee() external view returns(uint256 fee_);
+    /**
+     * Set(s) the fee for a key.
+     */
+    function setFee(uint256 value_) external returns(bool r);
 
     /**
      * @dev Gets the current airline count.
@@ -21,29 +30,24 @@ interface IAirlineProvider {
     function getAirlineCount() external returns(uint256 count);
 
     /**
-     * @dev Gets the current fee for interactions.
-     */
-    function fee() external view returns(uint256 fee_);
-
-    /**
      * @dev Gets an airline id by name.
      */
-    function getAirlineId(string name) external returns(bytes32 id);
+    function getAirlineId(string calldata) external returns(bytes32 id);
 
     /**
     * @dev Checks an airlines registration.
     */
-    function isAirlineRegistered(string name) external returns(bool);
+    function isAirlineRegistered(string calldata) external returns(bool);
 
     /**
     * @dev Checks an airlines operational status.
     */
-    function isAirlineOperational(string name) external returns(bool);
+    function isAirlineOperational(string calldata) external returns(bool);
 
     /**
      * Get(s) an airline 'object' by name.
      */
-    function getAirline(string name) external returns(address,string memory,bool,bool,uint256);
+    function getAirline(string calldata) external returns(bytes32,address,string memory,bool,uint256);
 
    /**
     * @dev Add an airline to the registration queue

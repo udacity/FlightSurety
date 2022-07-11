@@ -25,35 +25,28 @@ interface IBSFComptroller {
     event ContractDisabled(address indexed deployed, bytes32 id, string key);
     /**
      * @dev Determines if a contract exists.
-     * @param {string} The contract key.
      */
     function existsContract(string calldata) external view returns (bool);
     /**
      * @dev Gets a 'AuthContract' object.
-     * @param {string} The contract key.
-     * @param {string} The contract key.
      * @return {bytes32:id, bool:enabled, address:deployed} Contract struct.
      */
     function getContract(string calldata) external view returns (bytes32, bool, address);
     /**
      * @dev Gets the contract id
-     * @param {string} The contract key.
      */
     function getContractId(string calldata) external view returns (bytes32);
     /**
      * @dev Disables specified contract by key.
-     * @param {string} The contract key.
      */
     function disableContract(string calldata) external returns (bool);
     /**
      * @dev Registers a contract.
-     * @param {string} The contract key.
      * @param deployed {address} The deployed contract address.
      */
     function registerContract(string calldata, address deployed) external returns (bool);
     /**
      * @dev Updates a contract {deployed:address} with the comptroller.
-     * @param {string} The contract key.
      * @param deployed {address} The deployed contract address.
      */
     function setContractDeployed(string calldata, address deployed) external returns (bool);

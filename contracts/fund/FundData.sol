@@ -5,12 +5,9 @@ import "../../node_modules/openzeppelin-solidity/contracts/math/SafeMath.sol";
 
 import "../BSF/BSFContract.sol";
 
-import "../utils/IProvider.sol";
-import "../utils/IFeeProvider.sol";
-
 import "./IFundProvider.sol";
 
-contract FundData is BSFContract, IProvider, IFeeProvider, IFundProvider {
+contract FundData is BSFContract, IFundProvider {
     using SafeMath for uint256;
 
     /**
@@ -71,6 +68,15 @@ contract FundData is BSFContract, IProvider, IFeeProvider, IFundProvider {
         BSFContract(__comptroller, __key) {
     }
 
+    function fee() external view returns(uint256 fee_){
+        fee_ = _fee;
+    }
+
+    function setFee(uint256 value_) external authorized returns(bool r){
+        _fee = value_;
+        r = _fee == value_;
+    }
+
     function _existsFund(string memory name) internal view returns(bool) {
         return _funds[_getFundId(name)].owner != address(0);
     }
@@ -105,7 +111,7 @@ contract FundData is BSFContract, IProvider, IFeeProvider, IFundProvider {
     }
 
     function _getFundId(string name) private returns(bytes32 id){
-        id = keccak256(abi.encodePacked(_bsf_insurance_fund, name));
+        id = keccak256(abi.encodePacked(_bsf_fund, name));
     }
 
     /**
@@ -126,16 +132,14 @@ contract FundData is BSFContract, IProvider, IFeeProvider, IFundProvider {
     * @dev Registers a fund.
     * @param account {address} Fund Owner.
     * @param name {string} Fund Name.
-    * @param amount {uint256} Amount to contribute.
     * @param pub {bool}Are fund contributions public.
-
     */
     function _registerFund(address account, 
                            string memory name,
                            bool pub,
                            uint256 payout,
                            uint256 contribution) 
-                           private returns (bool) {
+                           internal returns (bool) {
         bytes32 id = _getFundId(name);
         _funds[id] = SuretyFund({
             owner: account,
@@ -148,9 +152,9 @@ contract FundData is BSFContract, IProvider, IFeeProvider, IFundProvider {
     }
 
     /**
-    * @see {_registerFund:function}
+    * 
     */
-    function registerFund(string name, bool pub, uint256 payout, uint256 contribution) external requireOperational {
+    function registerFund(string name, bool pub, uint256 payout, uint256 contribution) external {
         require(!_existsFund(name), "A fund with this name already exists.");
         _registerFund(msg.sender, name, pub, payout, contribution);
     }

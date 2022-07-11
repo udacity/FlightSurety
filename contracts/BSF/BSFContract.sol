@@ -29,7 +29,10 @@ contract BSFContract is Ownable {
     string internal _bsf_insurance = "bsf.insurance";
     string internal _bsf_insurance_nft = "bsf.insurance.nft";
     string internal _bsf_insurance_data = "bsf.insurance.data";
-    string internal _bsf_insurance_fund = "bsf.insurance.fund";
+
+    string internal _bsf_fund = "bsf.fund";
+    string internal _bsf_fund_data = "bsf.fund.data";
+    string internal _bsf_fund_nft = "bsf.fund.nft";
 
     string internal _bsf_payout = "bsf.payout";
     string internal _bsf_payout_data = "bsf.payout.data";
@@ -48,10 +51,12 @@ contract BSFContract is Ownable {
         _operational = true;
         _comptroller = IBSFComptroller(comptroller_);
         _key = key_;
-        (bool enabled, address deployed) = _getContractAddress(_bsf_token);
-        if(enabled){
-            _token = IBSF20(deployed);
-        }
+        // if(keccak256(_key) != keccak256(_bsf_token)){
+        //     (bool enabled, address deployed) = _getContractAddress(_bsf_token);
+        //     if(enabled){
+        //         _token = IBSF20(deployed);
+        //     }
+        // }
     }
 
     modifier authorized() {
@@ -89,7 +94,7 @@ contract BSFContract is Ownable {
 
     function operational() 
                             external 
-                            pure 
+                            view 
                             returns(bool) 
     {
         return _operational;  // Modify to call data contract's status

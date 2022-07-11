@@ -5,12 +5,9 @@ import "../../node_modules/openzeppelin-solidity/contracts/math/SafeMath.sol";
 
 import "../BSF/BSFContract.sol";
 
-import "../utils/IProvider.sol";
-import "../utils/IFeeProvider.sol";
-
 import "./IInsuranceProvider.sol";
 
-contract InsuranceData is BSFContract, IProvider, IFeeProvider, IInsuranceProvider {
+contract InsuranceData is BSFContract, IInsuranceProvider {
     using SafeMath for uint256;
 
     /**
@@ -71,8 +68,8 @@ contract InsuranceData is BSFContract, IProvider, IFeeProvider, IInsuranceProvid
                             payable
     {}
 
-    function _credit(bytes32 _contract, uint256 value) private {
-        Insurance bond = _contracts[_contract];
+    function _credit(bytes32 _contract, uint256 value) internal {
+        Insurance storage bond = _contracts[_contract];
         uint256 payout = bond.value;
         bond.value = 0;
         //_payouts[bond.account] = payout;
@@ -82,7 +79,7 @@ contract InsuranceData is BSFContract, IProvider, IFeeProvider, IInsuranceProvid
     /**
     * @dev Credit insured contracts.
     */
-    function credit(address fund, address insured, uint256 value) external pure requireOperational {
+    function credit(address fund, address insured, uint256 value) external pure {
         //require((fund != address(0) && insured != address(0)), "Accounts must be valid address.");
         //require(_funds[fund].name.length > 0, "The target fund does not exist.");
         //require(_contracts[insured].passenger == insured, "Insure was not an insured passenger.");

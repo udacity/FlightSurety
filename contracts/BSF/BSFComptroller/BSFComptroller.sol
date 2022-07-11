@@ -41,7 +41,7 @@ contract BSFComptroller is Ownable {
              internal 
              view 
              returns(bytes32 id, bool enabled, address deployed) {
-                AuthContract c = _authorized[id];
+                AuthContract storage c = _authorized[id];
                 id = id_;
                 enabled = c.enabled;
                 deployed = c.deployed;

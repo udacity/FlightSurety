@@ -37,27 +37,27 @@ contract FlightSuretyApp is BSFContract {
     /**
     * @dev Unknown Status
     */
-    uint8 private constant STATUS_CODE_UNKNOWN = 0;
+    uint8 internal constant STATUS_CODE_UNKNOWN = 0;
     /**
     * @dev On Time Status
     */
-    uint8 private constant STATUS_CODE_ON_TIME = 10;
+    uint8 internal constant STATUS_CODE_ON_TIME = 10;
     /**
     * @dev Late - Airline Status
     */
-    uint8 private constant STATUS_CODE_LATE_AIRLINE = 20;
+    uint8 internal constant STATUS_CODE_LATE_AIRLINE = 20;
     /**
     * @dev Late - Weather Status
     */
-    uint8 private constant STATUS_CODE_LATE_WEATHER = 30;
+    uint8 internal constant STATUS_CODE_LATE_WEATHER = 30;
     /**
     * @dev Late - Technical Status
     */
-    uint8 private constant STATUS_CODE_LATE_TECHNICAL = 40;
+    uint8 internal constant STATUS_CODE_LATE_TECHNICAL = 40;
     /**
     * @dev Late - Other Status
     */
-    uint8 private constant STATUS_CODE_LATE_OTHER = 50;
+    uint8 internal constant STATUS_CODE_LATE_OTHER = 50;
 
     IAirlineProvider internal _airlines;
     IFlightProvider internal _flights;
@@ -71,21 +71,22 @@ contract FlightSuretyApp is BSFContract {
     /********************************************************************************************/
 
     modifier requireFee(string key){
-        bytes32 h = keccak256(key);
-        if(h == keccak256(_bsf_airline)){
-            require(msg.value >= _airlines.fee(), "");
+        bytes32 h = keccak256(abi.encodePacked(key));
+        uint256 v = msg.value;
+        if(h == keccak256(abi.encodePacked(_bsf_airline))){
+            require(v >= _airlines.fee(), "");
         }
 
-        if(h == keccak256(_bsf_flight)){
-            require(msg.value >= _flights.fee(), "");
+        if(h == keccak256(abi.encodePacked(_bsf_flight))){
+            require(v >= _flights.fee(), "");
         }
 
-        if(h == keccak256(_bsf_insurance)){
-            require(msg.value >= _insurances.fee(), "");
+        if(h == keccak256(abi.encodePacked(_bsf_insurance))){
+            require(v >= _insurances.fee(), "");
         }
 
-        if(h == keccak256(_bsf_payout)){
-            require(msg.value >= _payouts.fee(), "");
+        if(h == keccak256(abi.encodePacked(_bsf_payout))){
+            require(v >= _payouts.fee(), "");
         }
         _;
     }
@@ -97,14 +98,12 @@ contract FlightSuretyApp is BSFContract {
 
     /**
     * @dev Contract constructor
-    * @param comptroller {address}
-    * @param backend {address} SuretyData Contract
+    * @param __comptroller {address}
+    * @param __key {string} contract key
     */
-    constructor
-            (
+    constructor(
                 address __comptroller,
-                string __key
-            ) 
+                string __key) 
             BSFContract(__comptroller, __key) 
     {
         require(__comptroller != address(0), "'__comptroller' cannot be equal to burn address.");
@@ -152,13 +151,12 @@ contract FlightSuretyApp is BSFContract {
     * @return { success:bool }
     * @return { votes:uint256 }
     */   
-    function registerAirline
-                            (
+    function registerAirline(
                                 string name,
                                 address account
                             )
                             external
-                            pure
+                            payable
                             requireValidString(name)
                             requireValidAddress(account)
                             requireFee(_bsf_airline)
@@ -172,21 +170,19 @@ contract FlightSuretyApp is BSFContract {
    /**
     * @dev Register a future flight for insuring.
     */  
-    function registerFlight
-                                (
+    function registerFlight(
                                     string airline,
                                     string flight,
                                     uint8 status,
                                     uint256 timestamp
                                 )
                                 external
-                                pure
+                                payable
                                 requireValidString(airline)
                                 requireValidString(flight)
     {
         require(_airlines.isAirlineRegistered(airline), string(abi.encodePacked("The airline ", airline, " is not registered.")));
         require(_airlines.isAirlineOperational(airline), string(abi.encodePacked("The airline ", airline, " is not operational.")));
-
 
         bytes32 aid = _airlines.getAirlineId(airline);
 
@@ -197,8 +193,7 @@ contract FlightSuretyApp is BSFContract {
 
 
     // Generate a request for oracles to fetch flight information
-    function getFlightStatus
-                        (
+    function getFlightStatus(
                             address airline,
                             string flight,
                             uint256 timestamp                            
@@ -235,28 +230,18 @@ contract FlightSuretyApp is BSFContract {
                                                         // the response that majority of the oracles
     }
 
-    function getFlightId
-                        (
-                            string airline,
-                            string flight,
-                            uint256 timestamp
-                        )
-                        pure
-                        internal
+    function getFlightId(string flight, uint256 timestamp)
+                        external
+                        view
                         requireOperational
-                        returns(bytes32) 
-    {
-        bytes32 aid = _airlines.getAirlineId(airline);
-        return _flights.getFlightId(aid, flight, timestamp);
+                        returns(bytes32) {
+        return _flights.getFlightId(flight, timestamp);
     }
 
     /**
      * @return {array:int} of three non-duplicating integers from 0-9
      */
-    function getRandomIndex
-                            (
-                                address account
-                            )
+    function getRandomIndex(address account)
                             internal
                             returns (uint8 random)
     {

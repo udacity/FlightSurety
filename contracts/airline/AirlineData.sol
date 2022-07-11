@@ -5,12 +5,9 @@ import "../../node_modules/openzeppelin-solidity/contracts/math/SafeMath.sol";
 
 import "../BSF/BSFContract.sol";
 
-import "../utils/IProvider.sol";
-import "../utils/IFeeProvider.sol";
-
 import "./IAirlineProvider.sol";
 
-contract AirlineData is BSFContract, IProvider, IFeeProvider, IAirlineProvider {
+contract AirlineData is BSFContract, IAirlineProvider {
     using SafeMath for uint256;
 
     uint256 internal _airlineCount;
@@ -81,11 +78,15 @@ contract AirlineData is BSFContract, IProvider, IFeeProvider, IAirlineProvider {
         BSFContract(__comptroller, __key) {}
 
     function fee() external view returns(uint256 fee_){
-        return _fee;
+        fee_ = _fee;
+    }
+
+    function setFee(uint256 value_) external onlyOwner returns(bool r) {
+        _fee = value_;
+        r = _fee == value_;
     }
 
     function getAirlineCount() external returns(uint256 count) {
-
         count = _airlineCount;
     }
 
@@ -97,7 +98,7 @@ contract AirlineData is BSFContract, IProvider, IFeeProvider, IAirlineProvider {
      * @dev Gets an airline id by name.
      */
     function getAirlineId(string name) external requireValidString(name) returns(bytes32 id){
-        return _getAirlineId(name);
+        id = _getAirlineId(name);
     }
 
     function _isAirlineRegistered(string memory name) private view returns(bool){
@@ -109,7 +110,6 @@ contract AirlineData is BSFContract, IProvider, IFeeProvider, IAirlineProvider {
     */
     function isAirlineRegistered(string name) 
                 external 
-                view
                 requireValidString(name) returns(bool) {
         return _isAirlineRegistered(name);
     }
@@ -135,7 +135,7 @@ contract AirlineData is BSFContract, IProvider, IFeeProvider, IAirlineProvider {
 
     function _getAirline(string memory name) private returns(bytes32,address,string memory,bool,uint256){
         bytes32 id = _getAirlineId(name);
-        Airline ret = _airlines[id];
+        Airline storage ret = _airlines[id];
         return (id,ret.account,ret.name,ret.operational,ret.votes);
     }
     /**
@@ -155,7 +155,7 @@ contract AirlineData is BSFContract, IProvider, IFeeProvider, IAirlineProvider {
 
     /**
     * @dev Registers an account as an airline.
-    * @todo Create _getThreshold to determine the number of airlines that exact and the threshold of votes required to register.
+    * todo Create _getThreshold to determine the number of airlines that exact and the threshold of votes required to register.
     */
     function _registerAirline(address account, string memory name, bool operational, uint256 period) internal returns(bool success) {
         bytes32 id = _getAirlineId(name);
@@ -172,23 +172,21 @@ contract AirlineData is BSFContract, IProvider, IFeeProvider, IAirlineProvider {
     }
 
 
-    function _registerAirlineVote(bytes32 id, bool choice) private returns(bool) {
-        if(choice) {
-            _airlines[airlineId].votes.add(1);
-        }
-
+    function _registerAirlineVote(bytes32 id, bytes32 voterId, bool choice) private returns(bool) {
         _voted[voterId] = true;
-        
-        emit AirlineVoteRegistered(id, choice, msg.sender);
+        if(choice) {
+            _airlines[id].votes.add(1);
+        }
+        emit AirlineVoteRegistered(id, voterId, choice);
         return true;
     }
+
    /**
     * @dev Add an airline to the registration queue
     * @dev Can only be called from FlightSuretyApp contract
     */   
     function registerAirline(address account, string name)
         external
-        pure
         requireOperational
         returns (bool registered) {
             require(!_existsAirline(name), "Airline is already registered.");
@@ -205,7 +203,6 @@ contract AirlineData is BSFContract, IProvider, IFeeProvider, IAirlineProvider {
      */
     function registerAirlineVote(string name, bool choice)
         external
-        pure
         requireOperational
         returns(bool registered) {
             require(_existsAirline(name), "The airline must exist.");
