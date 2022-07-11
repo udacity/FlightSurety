@@ -51,12 +51,12 @@ contract BSFContract is Ownable {
         _operational = true;
         _comptroller = IBSFComptroller(comptroller_);
         _key = key_;
-        if(keccak256(_key) != keccak256(_bsf_token)){
-            (bool enabled, address deployed) = _getContractAddress(_bsf_token);
-            if(enabled){
-                _token = IBSF20(deployed);
-            }
-        }
+        // if(keccak256(_key) != keccak256(_bsf_token)){
+        //     (bool enabled, address deployed) = _getContractAddress(_bsf_token);
+        //     if(enabled){
+        //         _token = IBSF20(deployed);
+        //     }
+        // }
     }
 
     modifier authorized() {

@@ -8,7 +8,7 @@
   "repository": "https://github.com/techbubble/flightsurety",
   "license": "MIT",
   "scripts": {
-    "test": "truffle test ./test/flightSurety.js",
+    "test": "truffle test",
     "dapp": "webpack-dev-server --mode development --config webpack.config.dapp.js",
     "dapp:prod": "webpack --mode production  --config webpack.config.dapp.js",
     "server": "rm -rf ./build/server && webpack --config webpack.config.server.js"
@@ -42,5 +42,8 @@
     "webpack-cli": "^3.3.1",
     "webpack-dev-server": "3.3.1",
     "webpack-node-externals": "1.7.2"
+  },
+  "dependencies": {
+    "dotenv": "^16.0.1"
   }
 }

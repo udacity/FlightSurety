@@ -73,14 +73,10 @@ contract BSFComptroller is Ownable {
                               address deployed)
                               external
                               onlyOwner
-                              notExists(key)
         returns(bool ret){
             require(deployed != address(0), "'deployed' cannot be burn address.");
             bytes32 id = _getContractId(key);
-            if(_registerContract(id, key, deployed)){
-                return true;
-            }
-            return false;
+            return _registerContract(id, key, deployed);
     }
 
     function _setContractDeployed(bytes32 id,string key, address deployed) internal returns(bool) {

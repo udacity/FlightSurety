@@ -63,4 +63,7 @@ typings/
 # dotenv environment variables file
 .env
 
+# secret files
+.secret
+
 ~$*.pptx

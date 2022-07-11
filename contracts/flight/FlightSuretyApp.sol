@@ -107,7 +107,7 @@ contract FlightSuretyApp is BSFContract {
             BSFContract(__comptroller, __key) 
     {
         require(__comptroller != address(0), "'__comptroller' cannot be equal to burn address.");
-        _configure();
+        //_configure();
     }
 
     function _configAirlineProvider() internal {
