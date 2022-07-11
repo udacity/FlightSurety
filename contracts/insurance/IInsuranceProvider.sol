@@ -9,5 +9,5 @@ interface IInsuranceProvider {
     /**
      * Set(s) the fee for a key.
      */
-    function setFee(string calldata) external returns(bool r);
+    function setFee(uint256 value_) external returns(bool r);
 }

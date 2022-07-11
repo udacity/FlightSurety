@@ -45,8 +45,9 @@ const Config = async function(accounts) {
     const _bsf_flight_surety_app = "bsf.flight.surety.app";
 
     const bsfComptroller = await BsfComptroller.new();
+    console.log(`[Comptroller Deployed]: ${bsfComptroller.address}`);
     const bsf20 = await Bsf20.new(_bsf_token_name, _bsf_token_symbol, _bsf_token_decimals, bsfComptroller.address, _bsf_token);
-
+    console.log(`[BSF20 Deployed]: ${bsf20.address}`);
     const tokenRegistered = await bsfComptroller.registerContract(_bsf_token, bsf20.address);
 
     const airlineData = await AirlineData.new(bsfComptroller.address, _bsf_airline_data);

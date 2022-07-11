@@ -12,7 +12,7 @@ contract PayoutData is BSFContract, IPayoutProvider {
     /**
     * @dev Current rate for processing a payout.
     */
-    uint256 internal _fee = 1;
+    uint256 internal _fee = 0.01 ether;
 
     /**
      * @dev Payouts accessor.

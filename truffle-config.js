@@ -2,7 +2,7 @@ var HDWalletProvider = require("@truffle/hdwallet-provider");
 var mnemonic = "pilot cigar phone morning dumb evolve print profit hungry you potato clever";
 
 module.exports = {
-  //contracts_directory: "./contracts/airline",
+  //contracts_directory: "./contracts/fund",
   networks: {
     development: {
       provider: function() {

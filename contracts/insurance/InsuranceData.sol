@@ -13,7 +13,7 @@ contract InsuranceData is BSFContract, IInsuranceProvider {
     /**
     * @dev Current insurance rate.
     */
-    uint256 private _fee = uint256(0.01);
+    uint256 private _fee = 0.01 ether;
 
     /**
     * @dev Defines an insurance contract.
@@ -84,6 +84,15 @@ contract InsuranceData is BSFContract, IInsuranceProvider {
         //require(_funds[fund].name.length > 0, "The target fund does not exist.");
         //require(_contracts[insured].passenger == insured, "Insure was not an insured passenger.");
 
+    }
+
+    function fee() external view returns(uint256 fee_){
+        fee_ = _fee;
+    }
+
+    function setFee(uint256 value_) external authorized returns(bool r){
+        _fee = value_;
+        r = _fee == value_;
     }
 
     function withdraw(address insured) external requireOperational returns(uint256){

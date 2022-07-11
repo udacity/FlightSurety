@@ -12,6 +12,7 @@ contract('BSF Comptroller Tests', async (accounts) => {
     });
 
     it(`Verify contracts registered with comptroller.`, async function () {
+        config = await Test.Config(accounts);
         let exists = await config.bsfComptroller.existsContract.call(_bsf_surety_app);
         assert.equal(exists, true, "The expected contract is not registered with comptroller.");
     });

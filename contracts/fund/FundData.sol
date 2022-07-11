@@ -13,7 +13,7 @@ contract FundData is BSFContract, IFundProvider {
     /**
     * @dev Current rate for registering and adding liquidity to a fund.
     */
-    uint256 internal _fee = uint256(0.01);
+    uint256 internal _fee = 0.01 ether;
 
     /**
     * @dev Defines a surety fund.
