@@ -32,12 +32,10 @@ contract BSF721 is ERC721Token,BSFContract {
     constructor(string __name, 
                 string __symbol,
                 address __comptroller,
-                string __key) 
-                ERC721Token(__name,__symbol) {
-                    require(__comptroller != address(0), "'__comptroller' cannot be equal to burn address.");
-                    _comptroller = IBSFComptroller(__comptroller);
-                    _key = __key;
-                }
+                string __key,
+                address __token) 
+                ERC721Token(__name,__symbol)
+                BSFContract(__comptroller, __key) {}
 
     function mint(bytes32 id, string data) 
              external

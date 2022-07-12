@@ -64,9 +64,8 @@ contract FundData is BSFContract, IFundProvider {
     */
     event FundContributionWithdrawal(bytes32 id, uint256 amount, address indexed account);
 
-    constructor (address __comptroller, string __key) 
-        BSFContract(__comptroller, __key) {
-    }
+    constructor (address __comptroller, string __key, address __token) 
+        BSFContract(__comptroller, __key, __token) {}
 
     function fee() external view returns(uint256 fee_){
         fee_ = _fee;

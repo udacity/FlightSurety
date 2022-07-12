@@ -1,19 +1,20 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.4.24;
 
-import "../../../node_modules/openzeppelin-solidity/contracts/ownership/Ownable.sol";
 import "../../../node_modules/openzeppelin-solidity/contracts/math/SafeMath.sol";
 
-contract BSFComptroller is Ownable {
+import "../BSFContractSolo.sol";
+
+contract BSFComptroller is BSFContractSolo {
 
     string private _key = "bsf.comptroller";
 
-    struct AuthContract{
+    struct Contract{
         bool enabled;
         address deployed;
     }
 
-    mapping(bytes32 => AuthContract) _authorized;
+    mapping(bytes32 => Contract) _contracts;
     mapping(bytes32 => bool) _access;
 
     event ContractAuthorized(address indexed deployed, bytes32 id, string key);
@@ -30,18 +31,24 @@ contract BSFComptroller is Ownable {
         _;
     }
 
+    constructor(string __key) 
+        BSFContractSolo(__key){}
+
     function _existsContract(bytes32 id) internal returns (bool ex){
-        ex = _authorized[id].deployed != address(0);
+        Contract storage c = _contracts[id];
+        ex = c.deployed != address(0);
+        return ex;
     }
     function existsContract(string key) external view returns(bool){
-        return _existsContract(_getContractId(key));
+        bytes32 id = _getContractId(key);
+        return _existsContract(id);
     }
 
     function _getContract(bytes32 id_) 
              internal 
              view 
              returns(bytes32 id, bool enabled, address deployed) {
-                AuthContract storage c = _authorized[id];
+                Contract storage c = _contracts[id];
                 id = id_;
                 enabled = c.enabled;
                 deployed = c.deployed;
@@ -57,18 +64,21 @@ contract BSFComptroller is Ownable {
     function _getContractId(string memory key) internal view returns (bytes32 id) {
         id = keccak256(abi.encodePacked(_key, key));
     }
+
     function getContractId(string key) external view returns(bytes32 id){
         return _getContractId(key);
     }
 
     function _registerContract(bytes32 id,string key, address deployed) internal returns(bool) {
-        _authorized[id] = AuthContract({
-            enabled: true,
-            deployed: deployed
-        });
-        emit ContractAuthorized(deployed, id, key);
-        return true;
+        Contract memory c = Contract(true,deployed);
+        _contracts[id] = c;
+        if(_existsContract(id)){
+            emit ContractAuthorized(deployed, id, key);
+            return true;
+        }
+        return false;
     }
+
     function registerContract(string key, 
                               address deployed)
                               external
@@ -76,11 +86,12 @@ contract BSFComptroller is Ownable {
         returns(bool ret){
             require(deployed != address(0), "'deployed' cannot be burn address.");
             bytes32 id = _getContractId(key);
-            return _registerContract(id, key, deployed);
+            ret = _registerContract(id, key, deployed);
+            return ret;
     }
 
     function _setContractDeployed(bytes32 id,string key, address deployed) internal returns(bool) {
-        AuthContract storage c = _authorized[id];
+        Contract storage c = _contracts[id];
         c.deployed = deployed;
         emit ContractDeployedChanged(deployed, id, key);
         return true;

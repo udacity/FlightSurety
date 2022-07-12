@@ -7,9 +7,8 @@ import "../../../node_modules/openzeppelin-solidity/contracts/token/ERC20/Burnab
 
 import "../BSFContract.sol";
 
-//DetailedERC20
-//DetailedERC20(name_, symbol_, decimals_)
-contract BSF20 is IBSF20, BSFContract, BurnableToken, MintableToken {
+contract BSF20 is IBSF20, BSFContract, BurnableToken, MintableToken, DetailedERC20 {
   constructor(string name_, string symbol_, uint8 decimals_, address __comptroller, string __key) 
-  BSFContract(__comptroller,__key){}
+  BSFContract(__comptroller,__key)
+  DetailedERC20(name_, symbol_, decimals_){}
 }

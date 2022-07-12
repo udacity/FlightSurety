@@ -11,6 +11,7 @@ const FlightSuretyApp = artifacts.require("FlightSuretyApp");
 const fs = require('fs');
 
 let _bsf_comptroller;
+const _bsf_comptroller_key = "bsf.comptroller";
 
 const _bsf_token = "bsf.token";
 let _bsf_token_instance;
@@ -38,7 +39,7 @@ const _bsf_flight_surety_app = "bsf.flight.surety.app";
 
 module.exports = function(deployer, network, accounts) {
 
-    deployer.deploy(BsfComptroller)
+    deployer.deploy(BsfComptroller, _bsf_comptroller_key)
     .then((instance) => {
         _bsf_comptroller = instance;
         return deployer.deploy(Bsf20, _bsf_token_name, _bsf_token_symbol, _bsf_token_decimals, _bsf_comptroller.address, _bsf_token)

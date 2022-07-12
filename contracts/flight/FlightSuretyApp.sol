@@ -101,11 +101,8 @@ contract FlightSuretyApp is BSFContract {
     * @param __comptroller {address}
     * @param __key {string} contract key
     */
-    constructor(
-                address __comptroller,
-                string __key) 
-            BSFContract(__comptroller, __key) 
-    {
+    constructor(address __comptroller,string __key) 
+            BSFContract(__comptroller, __key) {
         require(__comptroller != address(0), "'__comptroller' cannot be equal to burn address.");
         //_configure();
     }

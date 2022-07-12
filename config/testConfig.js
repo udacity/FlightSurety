@@ -42,6 +42,7 @@ const Config = async function(accounts) {
     const secondAirline = accounts[2];
     const thirdAirline = accounts[3];
 
+    const _bsf_comptroller = "bsf.comptroller";
     const _bsf_token = "bsf.token";
     const _bsf_token_name = "Black Swan Foundry Token";
     const _bsf_token_symbol = "BSFT";
@@ -54,7 +55,7 @@ const Config = async function(accounts) {
     const _bsf_payout_data = "bsf.payout.data";
     const _bsf_flight_surety_app = "bsf.flight.surety.app";
 
-    const bsfComptroller = await BsfComptroller.new({from: owner});
+    const bsfComptroller = await BsfComptroller.new(_bsf_comptroller,{from: owner});
     console.log(`[Comptroller]: ${bsfComptroller.address}`);
 
     const bsf20 = await Bsf20.new(_bsf_token_name, _bsf_token_symbol, _bsf_token_decimals, bsfComptroller.address, _bsf_token, {from:owner});

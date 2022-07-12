@@ -26,9 +26,7 @@ contract FlightData is BSFContract, IFlightProvider {
     mapping(bytes32 => Flight) internal flights;
 
     constructor(address __comptroller, string __key) 
-        BSFContract(__comptroller, __key) {
-
-    }
+        BSFContract(__comptroller, __key) {}
 
     function fee() external view returns(uint256 fee_){
         fee_ = _fee;
