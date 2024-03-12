@@ -4,9 +4,61 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-    <title>FlightSurety</title>
+    <title>Flight Surety</title>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.1.1/css/bootstrap.min.css" rel="stylesheet">
     <link rel="icon" type="image/x-icon" href="favicon.ico">
+    <link rel="stylesheet" href="flightsurety.css">
+
+    <!--<script type="text/javascript">
+        function fetchName(nameAirline,flight){
+            for(var d=1;d<=31;d++)
+            {
+                document.write("<option>"+ d + nameAirline +"</option>");
+            }
+        }
+    </script>-->
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/web3/1.7.4-rc.1/web3.min.js"></script>
+    <script>
+        // import Contract from './contract';
+
+        // function getAirline(numAirline){(async() => {let contract = new Contract('localhost', () => {
+        //             console.log(contract.airlines[numAirline]);
+        //         });
+            
+        //     })()};
+        /* To connect using MetaMask */
+        async function connect() {
+            if (window.ethereum) {
+                let address = await window.ethereum.request({ method: "eth_requestAccounts" });
+                window.web3 = new Web3(window.ethereum);
+                // return address;
+                return true;
+            } else {
+                console.log("No wallet");
+                return false;
+            }
+        };
+
+        let toggle = button => {
+            let element = document.getElementById("showCustomer");
+            let hidden = element.getAttribute("hidden");
+
+            if (hidden) {
+                element.removeAttribute("hidden");
+                button.innerText = "Hide table";
+            } else {
+                element.setAttribute("hidden", "hidden");
+                button.innerText = "Show table";
+            }
+        }
+    </script>
+
+    <script>
+        async function getAddress() {
+            let connected = await connect();
+        }
+    </script>
 </head>
 
 <body>
@@ -20,14 +72,95 @@
     </nav>
 
     <main class="container">
+        <button class="btn btn-secondary" id="connect" onclick="getAddress();">Connect Wallet</button>
 
-        <div id="display-wrapper" class="top-20">
-        </div>
+        <div id="divConnectedAccount" class="top-20">Connected account :
+        <label id="ConnectedAccount" class="form"></label> </div>
+        <br>
+        <table id="showCustomer" class="tb" hidden="hidden">
+            <caption>
+                Customer insurance overview
+              </caption>
+            <tr>
+              <th>Customer address</th>
+              <th>flight insured</th>
+              <th>amount insured for</th>
+            </tr>
+            <tbody id="body"></tbody>
+          </table>
+
+        <div id="display-wrapper" class="top-20"></div>
         <div class="row top-20">
-            <label class="form">Flight</label> <input type="text" id="flight-number"> <btn class="btn btn-primary" id="submit-oracle">Submit to Oracles</btn>
+            <label class="form">Buy insurance for flight : </label>
+            <select name="flights-list" id="flight-numberInsurance">
+                <option value="">--Please choose a flight--</option>
+                <optgroup label="Ryanair" id="Ryanair" value="Ryanair">
+                    <option value="R11AIR">R11AIR</option>
+                    <option value="R12AIR">R12AIR</option>
+                    <option value="R13AIR">R13AIR</option>
+                </optgroup>
+                <optgroup label="Easyjet" id="Easyjet" value="Easyjet">
+                    <option value="E24FLY">E24FLY</option>
+                    <option value="E25FLY">E25FLY</option>
+                    <option value="E26FLY">E26FLY</option>
+                </optgroup>
+                <optgroup label="Lufthansa" id="Lufthansa" value="Lufthansa">
+                    <option value="L37SKY">L37SKY</option>
+                    <option value="L38SKY">L38SKY</option>
+                    <option value="L39SKY">L39SKY</option>
+                </optgroup>
+            </select>
+            <label class="form"> Insure flight for : </label>
+            <input type="number" min="0" id="amount-Insurance" placeholder="Price in ether">
+            <btn class="btn btn-primary" id="buy-insurance">Purchase insurance</btn>
         </div>
-    </main>
 
+        <div id="display-wrapper" class="top-20"></div>
+        <div class="row top-20">
+            <label class="form">Check flight status : </label>
+            <select name="flights-list" id="flight-number">
+                <option value="">--Please select a flight--</option>
+                <optgroup label="Ryanair"></optgroup>
+                    <option value="R11AIR">R11AIR</option>
+                    <option value="R12AIR">R12AIR</option>
+                    <option value="R13AIR">R13AIR</option>
+                </optgroup>
+                <optgroup label="Easyjet">
+                    <option value="E24FLY">E24FLY</option>
+                    <option value="E25FLY">E25FLY</option>
+                    <option value="E26FLY">E26FLY</option>
+                </optgroup>
+                <optgroup label="Lufthansa">
+                    <option value="L37SKY">L37SKY</option>
+                    <option value="L38SKY">L38SKY</option>
+                    <option value="L39SKY">L39SKY</option>
+                </optgroup>
+            </select>
+            <btn class="btn btn-primary" id="submit-oracle">Submit to Oracles</btn>
+        </div>
+        
+        <!-- Get reimbursed for flight -->
+        <div class="row top-20">
+            <label class="form">Insurance Payout </label>
+            <btn class="btn btn-primary" id="pay-customer">Payout for delayed flight</btn>
+        </div>
+
+        <div class="row top-20">
+            <label class="form">Show table of customer purchase</label>
+            <btn class="btn btn-primary" id="tableShow" onclick="toggle(this);">Show table</btn>
+        </div>
+
+        <!-- <div class="row top-20">
+            <label class="form">Show table of customer purchase</label>
+            <btn class="btn btn-primary" id="getAirline" onclick="getAirline(0)">Print Airline</btn>
+        </div> -->
+
+        <div class="row top-20">
+            <label class="form">Credit from insured delayed flights : </label>
+            <btn class="btn btn-primary" id="creditValue">check credit available</btn>
+        </div>
+
+    </main>
 </body>
 
 </html>

@@ -1,5 +1,5 @@
 body {
-    background-image: url('flight.jpg'); /* Source: iStockPhoto */
+    background-image: url('FLIGHT.JPG'); /* Source: iStockPhoto */
     background-repeat: no-repeat;
     background-size: cover;
 }
@@ -12,12 +12,48 @@ body {
     padding: 40px;
 }
 
+.btn-secondary{
+    color:#000000;
+    background-color:#c8c5c5;
+}
+.btn-secondary:hover{
+    color:#000000;
+    background-color:#8d8e8e;
+    border-color:#8d8e8e}
+
 .top-20 {
     margin-top: 20px;
 }
 
 h5 {
     color: #999999;
+}
+
+h1 {
+    font-size: 14px;
+    margin-right: 20px;
+}
+
+table{
+    border:solid;
+    padding: 10px;
+    text-align: center;
+}
+
+th{
+    border: 1px solid;
+    padding: 10px;
+    text-align: center;
+}
+
+td {
+    border: 1px solid;
+    padding: 10px;
+    text-align: center;
+}
+
+select {
+    margin-right: 20px;
 }
 
 section {
