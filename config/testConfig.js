@@ -4,8 +4,7 @@ var BigNumber = require('bignumber.js');
 
 var Config = async function(accounts) {
     
-    // These test addresses are useful when you need to add
-    // multiple users in test scripts
+    // These test addresses are useful when you need to add multiple users in test scripts
     let testAddresses = [
         "0x69e1CB5cFcA8A311586e3406ed0301C06fb839a2",
         "0xF014343BDFFbED8660A9d8721deC985126f189F3",
@@ -25,7 +24,6 @@ var Config = async function(accounts) {
     let flightSuretyData = await FlightSuretyData.new();
     let flightSuretyApp = await FlightSuretyApp.new(flightSuretyData.address);
 
-    // await flightSuretyData.setOperatingStatus(true, { from: owner })
     await flightSuretyData.authorizeCaller(flightSuretyApp.address, { from: owner });
     await flightSuretyApp.registerAirline(firstAirline, 'Airline Account 1', { from: owner });
 

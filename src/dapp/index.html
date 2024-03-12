@@ -9,24 +9,8 @@
     <link rel="icon" type="image/x-icon" href="favicon.ico">
     <link rel="stylesheet" href="flightsurety.css">
 
-    <!--<script type="text/javascript">
-        function fetchName(nameAirline,flight){
-            for(var d=1;d<=31;d++)
-            {
-                document.write("<option>"+ d + nameAirline +"</option>");
-            }
-        }
-    </script>-->
-
     <script src="https://cdnjs.cloudflare.com/ajax/libs/web3/1.7.4-rc.1/web3.min.js"></script>
     <script>
-        // import Contract from './contract';
-
-        // function getAirline(numAirline){(async() => {let contract = new Contract('localhost', () => {
-        //             console.log(contract.airlines[numAirline]);
-        //         });
-            
-        //     })()};
         /* To connect using MetaMask */
         async function connect() {
             if (window.ethereum) {
@@ -149,11 +133,6 @@
             <label class="form">Show table of customer purchase</label>
             <btn class="btn btn-primary" id="tableShow" onclick="toggle(this);">Show table</btn>
         </div>
-
-        <!-- <div class="row top-20">
-            <label class="form">Show table of customer purchase</label>
-            <btn class="btn btn-primary" id="getAirline" onclick="getAirline(0)">Print Airline</btn>
-        </div> -->
 
         <div class="row top-20">
             <label class="form">Credit from insured delayed flights : </label>

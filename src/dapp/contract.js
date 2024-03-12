@@ -250,7 +250,6 @@ export default class Contract {
 
     async custInsuredOrNot(flight, customerAddress){
         const yesNo = await this.flightSuretyData.methods.IsCustomerInsured(flight).call({ from: customerAddress});
-        // console.log("Cust is insured ", yesNo);
         return yesNo
     }
 

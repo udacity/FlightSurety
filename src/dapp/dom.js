@@ -49,7 +49,7 @@ export default class DOM {
     
       Object.keys(styles).forEach((styleName) => {
         if (styleName in el.style) {
-          el.style[styleName] = styles[styleName]; // eslint-disable-line no-param-reassign
+          el.style[styleName] = styles[styleName];
         } else {
           console.warn(`${styleName} is not a valid style for a <${el.tagName.toLowerCase()}>`);
         }

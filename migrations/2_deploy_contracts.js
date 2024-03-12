@@ -5,7 +5,7 @@ const fs = require('fs');
 module.exports = function(deployer) {
 
     let firstAirline = '0xf17f52151EbEF6C7334FAD080c5704D77216b732';
-    deployer.deploy(FlightSuretyData).then(async (instance) => { // the async  (instance) can be removed and replaced by () ; it's there only to check the contract address
+    deployer.deploy(FlightSuretyData).then(async (instance) => { // the async  (instance) can be removed and replaced by () ; it's to check the contract address
         console.log("Contract deployed at address:", instance.address);
         return deployer.deploy(FlightSuretyApp, FlightSuretyData.address);
     }).then(() => {

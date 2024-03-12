@@ -33,7 +33,7 @@ contract('Oracles', async (accounts) => {
           b = a - 9;
         }else{
           b = a;}
-        // console.log(Number(fee.toString()));
+
         await config.flightSuretyApp.registerOracle({ from: accounts[b], value: Number(fee.toString()) });
         let result = await config.flightSuretyApp.getMyIndexes.call({from: accounts[b]});
         console.log(`Oracle Registered: ${result[0]}, ${result[1]}, ${result[2]}`);
@@ -57,7 +57,7 @@ contract('Oracles', async (accounts) => {
     // ACT
 
     // Since the Index assigned to each test account is opaque by design
-    // loop through all the accounts and for each account, all its Indexes (indices?)
+    // loop through all the accounts and for each account, all its Indexes
     // and submit a response. The contract will reject a submission if it was
     // not requested so while sub-optimal, it's a good test of that feature
     let fee = await config.flightSuretyApp.REGISTRATION_FEE.call();

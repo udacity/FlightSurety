@@ -117,15 +117,8 @@ contract FlightSuretyApp {
     *
     */  
     function registerFlight(string calldata flightName, uint8 statusCodeF, uint256 timestampFlght) external requireIsRegisteredAirline requireIsOperational returns(bool success)
-    { //requireIsRegisteredAirline requireIsOperational
-        // Flight memory newFlight = Flight({
-        //     isRegistered: true,
-        //     statusCode: statusCodeF,
-        //     updatedTimestamp: timestampFlght,
-        //     airline: msg.sender}); // each airline includes its own flights
-            
+    {             
         bytes32 flightNameBytes = bytes32(uint256(keccak256(abi.encodePacked(flightName))));
-        // flights[flightNameBytes] = newFlight;
 
         Flight memory newFlight = flights[flightNameBytes];
         newFlight.isRegistered = true;
@@ -170,18 +163,9 @@ contract FlightSuretyApp {
 
         // Generate a unique key for storing the request
         bytes32 key = keccak256(abi.encodePacked(index, airline, flightBytes, timestamp));
-        // oracleResponses[key] = ResponseInfo({requester: msg.sender,
-        //                                      isOpen: true
-        //                                     });
-        // ResponseInfo memory newResponseInfo = ResponseInfo({
-        //     requester: msg.sender,
-        //     isOpen: true,
-        //     responses: new Response[](0)
-        //     });
     
         // Add the new ResponseInfo to the oracleResponses mapping
-        // oracleResponses[key] = newResponseInfo;
-        ResponseInfo storage newResponseInfo = oracleResponses[key]; //https://ethereum.stackexchange.com/questions/117658/copying-of-type-struct-memory-memory-to-storage-not-yet-supported
+        ResponseInfo storage newResponseInfo = oracleResponses[key];
         newResponseInfo.requester = msg.sender;
         newResponseInfo.isOpen = true;
         // newResponseInfo.responses = new Response[](0);
@@ -217,15 +201,11 @@ contract FlightSuretyApp {
     }
     struct ResponseInfo {
         address requester;                              // Account that requested status
-        bool isOpen;                                    // If open, oracle responses are accepted
-        // mapping(uint8 => address[]) responses;
+        bool isOpen;                                    // Oracle responses are accepted if open
         Response[] responses;                           // Mapping key is the status code reported
-                                                        // This lets us group responses and identify
-                                                        // the response that majority of the oracles
     }
 
     // Track all oracle responses
-    // Key = hash(index, flight, timestamp)
     mapping(bytes32 => ResponseInfo) private oracleResponses;
     
     // Event fired each time an oracle submits a response
@@ -271,21 +251,13 @@ contract FlightSuretyApp {
         bytes32 key = keccak256(abi.encodePacked(index, airline, flightBytes, timestamp));
         require(oracleResponses[key].isOpen, "Flight or timestamp do not match oracle request");
 
-        // create oracle response
-        // uint8 randomOracleResponse = uint8((getRandomIndex(msg.sender) + 1)/ 2)*10; // solidity floor numbers insteas of rounding, adding 1 prevent not to have number 50
-
-        // ResponseInfo storage respOr = oracleResponses[key];
-        // respOr.requester = oracleResponses[key].requester;
-        // respOr.responses.push(Response(msg.sender, statusCode));
-        // oracleResponses[key].responses[statusCode].push(msg.sender);
-        // oracleResponses[key].responses[oracleResponses[key].responses.length + 1] = Response(msg.sender, statusCode);
         oracleResponses[key].responses.push(Response(msg.sender, statusCode));
 
         // Keep track of the number of responses for each status code
         responseCounts[key][statusCode]++;
 
-        // Information isn't considered verified until at least MIN_RESPONSES
-        // oracles respond with the *** same *** information
+        // Information isn't verified until at least MIN_RESPONSES
+        // oracles respond with the same info
         emit OracleReport(airline, flightBytes, timestamp, statusCode);
         if (responseCounts[key][statusCode] >= MIN_RESPONSES) {
 
